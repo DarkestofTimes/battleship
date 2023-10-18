@@ -18,6 +18,7 @@ export const Ship = (num, bool) => {
     },
   };
 };
+
 export const Board = () => {
   return {
     visited: [],
@@ -183,6 +184,100 @@ export const Board = () => {
             this.visited.push(mark);
           }
         });
+        return true;
+      }
+      return false;
+    },
+  };
+};
+
+export const Player = () => {
+  return {
+    nextTarget: [],
+    hits: [],
+    calcTargetCoords() {
+      const targetCoords = {
+        x: Math.floor(Math.random() * 9),
+        y: Math.floor(Math.random() * 9),
+      };
+      return targetCoords;
+    },
+
+    commitAttack(board, input = this.calcTargetCoords()) {
+      const possibleTargets = (coords) => {
+        let directions;
+        const prevHits = [...this.hits];
+        const lastHit = prevHits.pop();
+        if (!lastHit) {
+          directions = [
+            { dx: -1, dy: 0 },
+            { dx: 1, dy: 0 },
+            { dx: 0, dy: -1 },
+            { dx: 0, dy: 1 },
+          ];
+        } else if (lastHit && lastHit.x == coords.x) {
+          // ship is on y axis
+          directions = [
+            { dx: 0, dy: -1 },
+            { dx: 0, dy: 1 },
+          ];
+          this.nextTarget = this.nextTarget.filter((obj) => {
+            obj.x == coords.x;
+          });
+        } else if (lastHit && lastHit.y == coords.y) {
+          // ship is on x axis
+          directions = [
+            { dx: -1, dy: 0 },
+            { dx: 1, dy: 0 },
+          ];
+          this.nextTarget = this.nextTarget.filter((obj) => {
+            obj.y == coords.y;
+          });
+        }
+
+        const mappedCoords = directions.map((direction) => ({
+          x: coords.x + direction.dx,
+          y: coords.y + direction.dy,
+        }));
+        const limitedCoords = mappedCoords.filter((obj) => {
+          return obj.x <= 9 && obj.x >= 0 && obj.y <= 9 && obj.y >= 0;
+        });
+
+        return limitedCoords.filter((element) => {
+          return !board.visited.some(
+            (pair) => pair[0] === element.x && pair[1] === element.y
+          );
+        });
+      };
+
+      let coords;
+      if (this.nextTarget.length !== 0) {
+        coords = this.nextTarget.splice(
+          Math.floor(Math.random() * this.nextTarget.length),
+          1
+        )[0];
+      } else {
+        coords = input;
+      }
+      if (
+        board.visited.some(
+          (pair) => pair[0] === coords.x && pair[1] === coords.y
+        )
+      ) {
+        while (
+          board.visited.some(
+            (pair) => pair[0] === coords.x && pair[1] === coords.y
+          )
+        ) {
+          coords = this.calcTargetCoords();
+        }
+      }
+
+      const attack = board.IncomingAttack(coords.x, coords.y);
+      if (attack) {
+        const nextCoords = possibleTargets(coords);
+        this.hits.push(coords);
+        nextCoords.forEach((coord) => this.nextTarget.push(coord));
         return true;
       }
       return false;
