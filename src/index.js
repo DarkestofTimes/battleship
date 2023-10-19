@@ -24,6 +24,13 @@ export const Board = () => {
     visited: [],
     occupied: [],
     sunken: [],
+    hits: [],
+    current: false,
+    createGrid() {
+      const axis = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+      const grid = axis.map((x) => axis.map((y) => [x, y])).flat();
+      return grid;
+    },
     isOver() {
       if (this.sunken.length >= this.occupied.length) {
         return true;
@@ -147,6 +154,7 @@ export const Board = () => {
       );
       if (theRightShip[0]) {
         theRightShip[0].wasHit();
+        this.hits.push([x, y]);
         if (theRightShip[0].wasSunk()) {
           let marks = markAdjacent(
             {
@@ -168,7 +176,7 @@ export const Board = () => {
               this.visited.push(mark);
             }
           });
-          this.sunken.push(theRightShip);
+          this.sunken.push(theRightShip[0]);
         }
         let marks = markAdjacent({ x: [x], y: [y] }, false);
 
@@ -199,94 +207,143 @@ export const Board = () => {
   };
 };
 
-export const Player = () => {
+export const Player = (type) => {
   return {
+    type: type,
     nextTarget: [],
     hits: [],
     calcTargetCoords() {
       const targetCoords = {
-        x: Math.floor(Math.random() * 9),
-        y: Math.floor(Math.random() * 9),
+        x: Math.floor(Math.random() * 10),
+        y: Math.floor(Math.random() * 10),
       };
       return targetCoords;
     },
 
     commitAttack(board, input = this.calcTargetCoords()) {
       //ATTACK
+
       const possibleTargets = (coords) => {
-        let directions;
+        const filter = (axis) => {
+          let filtered;
+          if (axis == "y") {
+            filtered = this.nextTarget.filter((obj) => {
+              obj.y == coords.y;
+            });
+          } else {
+            filtered = this.nextTarget.filter((obj) => {
+              obj.x == coords.x;
+            });
+          }
+          return filtered;
+        };
+
+        let directions = [
+          { dx: -1, dy: 0 },
+          { dx: 1, dy: 0 },
+          { dx: 0, dy: -1 },
+          { dx: 0, dy: 1 },
+        ];
         const prevHits = [...this.hits];
         const lastHit = prevHits.pop();
-        if (!lastHit) {
-          directions = [
-            { dx: -1, dy: 0 },
-            { dx: 1, dy: 0 },
-            { dx: 0, dy: -1 },
-            { dx: 0, dy: 1 },
-          ];
-        } else if (lastHit && lastHit.x == coords.x) {
+        let filteredCoords = [];
+
+        if (lastHit && lastHit.x == coords.x) {
           // ship is on y axis
           directions = [
             { dx: 0, dy: -1 },
             { dx: 0, dy: 1 },
           ];
-          this.nextTarget = this.nextTarget.filter((obj) => {
-            obj.x == coords.x;
-          });
+          const filtered = filter("x");
+          filtered.forEach((elem) => filteredCoords.push(elem));
         } else if (lastHit && lastHit.y == coords.y) {
           // ship is on x axis
           directions = [
             { dx: -1, dy: 0 },
             { dx: 1, dy: 0 },
           ];
-          this.nextTarget = this.nextTarget.filter((obj) => {
-            obj.y == coords.y;
-          });
+          const filtered = filter("y");
+          filtered.forEach((elem) => filteredCoords.push(elem));
         }
 
         const mappedCoords = directions.map((direction) => ({
           x: coords.x + direction.dx,
           y: coords.y + direction.dy,
         }));
-        const limitedCoords = mappedCoords.filter((obj) => {
+        mappedCoords.forEach((coord) =>
+          filteredCoords.splice(filteredCoords.length - 3, 0, coord)
+        );
+        const validCoords = filteredCoords.filter((obj) => {
           return obj.x <= 9 && obj.x >= 0 && obj.y <= 9 && obj.y >= 0;
         });
 
-        return limitedCoords.filter((element) => {
-          return !board.visited.some(
-            (pair) => pair[0] === element.x && pair[1] === element.y
-          );
-        });
+        return validCoords;
       };
 
-      let coords;
-      if (this.nextTarget.length !== 0) {
-        coords = this.nextTarget.splice(
-          Math.floor(Math.random() * this.nextTarget.length),
-          1
-        )[0];
-      } else {
-        coords = input;
-      }
+      const excludeCells = (coord) => {
+        const alive = board.occupied.filter((elem) => {
+          return elem.isSunk == false;
+        });
+        const dirs = [];
+        if (alive.length !== 0) {
+          const smallestSize = alive.sort((a, b) => a.size - b.size)[0].size;
+          const temp = [];
+          for (let i = 1; i < smallestSize; i++) {
+            temp.push({ x: coord.x + i, y: coord.y });
+            temp.push({ x: coord.x, y: coord.y + i });
+            temp.push({ x: coord.x - i, y: coord.y });
+            temp.push({ x: coord.x, y: coord.y - i });
+          }
+          temp.filter((obj) => {
+            return obj.x <= 9 && obj.x >= 0 && obj.y <= 9 && obj.y >= 0;
+          });
+          const findVisited = temp.filter((element) => {
+            return board.visited.some(
+              (pair) => pair[0] === element.x && pair[1] === element.y
+            );
+          });
+          if (findVisited >= 3) {
+            dirs.push([coord.x, coord.y]);
+          }
+          return dirs;
+        } else {
+          return dirs;
+        }
+      };
+
+      this.nextTarget = this.nextTarget.filter((element) => {
+        return !board.visited.some(
+          (pair) => pair[0] === element.x && pair[1] === element.y
+        );
+      });
+
+      let coords = input;
+      const excluded = excludeCells(coords);
+      const excludedAdnVisited = [...board.visited, ...excluded];
+
       if (
         board.visited.some(
           (pair) => pair[0] === coords.x && pair[1] === coords.y
         )
       ) {
         while (
-          board.visited.some(
+          excludedAdnVisited.some(
             (pair) => pair[0] === coords.x && pair[1] === coords.y
           )
         ) {
           coords = this.calcTargetCoords();
         }
       }
+      if (this.nextTarget.length !== 0) {
+        coords = this.nextTarget.pop();
+      }
 
       const attack = board.IncomingAttack(coords.x, coords.y);
       if (attack) {
         const nextCoords = possibleTargets(coords);
-        this.hits.push(coords);
         nextCoords.forEach((coord) => this.nextTarget.push(coord));
+        this.hits.push(coords);
+
         return true;
       }
       return false;
@@ -300,6 +357,57 @@ export const Player = () => {
         if (place) {
           size.shift();
         }
+      }
+    },
+  };
+};
+
+export const Game = () => {
+  const computer = {
+    player: Player("Computer"),
+    board: Board(),
+  };
+  const human = {
+    player: Player("Human"),
+    board: Board(),
+  };
+
+  return {
+    over: false,
+    computer: computer,
+    human: human,
+    newGame() {
+      computer.player.createFleet(computer.board);
+      human.player.createFleet(human.board);
+    },
+    declareWinner() {
+      if (human.board.isOver()) {
+        this.over = true;
+        return computer.player.type;
+      } else if (computer.board.isOver()) {
+        this.over = true;
+        return human.player.type;
+      }
+      return false;
+    },
+    turn() {
+      if (!this.over) {
+        if (computer.player.current == false && human.player.current == false) {
+          human.player.current = true;
+        }
+        if ((computer.player.current = true)) {
+          computer.player.commitAttack(human.board);
+          computer.player.current = false;
+          human.player.current = true;
+        }
+        if ((human.player.current = true)) {
+          human.player.commitAttack(computer.board);
+          human.player.current = false;
+          computer.player.current = true;
+        }
+        return false;
+      } else {
+        return true;
       }
     },
   };
