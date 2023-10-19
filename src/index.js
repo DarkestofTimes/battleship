@@ -23,14 +23,15 @@ export const Board = () => {
   return {
     visited: [],
     occupied: [],
-    sunken: 0,
+    sunken: [],
     isOver() {
-      if (this.sunken >= this.occupied.length) {
+      if (this.sunken.length >= this.occupied.length) {
         return true;
       }
       return false;
     },
     placeShip(x, y, size, axis) {
+      //place
       const canBePlaced = (x, y, size, axis) => {
         const directions = [
           { dx: -1, dy: 0 },
@@ -101,6 +102,7 @@ export const Board = () => {
       }
     },
     IncomingAttack(x, y) {
+      // attack
       if (this.visited.some((pair) => pair[0] === x && pair[1] === y)) {
         return false;
       }
@@ -166,8 +168,7 @@ export const Board = () => {
               this.visited.push(mark);
             }
           });
-
-          this.sunken++;
+          this.sunken.push(theRightShip);
         }
         let marks = markAdjacent({ x: [x], y: [y] }, false);
 
@@ -184,7 +185,14 @@ export const Board = () => {
             this.visited.push(mark);
           }
         });
-        return true;
+        return theRightShip[0];
+      }
+      return false;
+    },
+    reportLost() {
+      if (this.sunken.length !== 0) {
+        const lostShip = this.sunken.pop();
+        return lostShip;
       }
       return false;
     },
@@ -204,6 +212,7 @@ export const Player = () => {
     },
 
     commitAttack(board, input = this.calcTargetCoords()) {
+      //ATTACK
       const possibleTargets = (coords) => {
         let directions;
         const prevHits = [...this.hits];
@@ -281,6 +290,17 @@ export const Player = () => {
         return true;
       }
       return false;
+    },
+    createFleet(board) {
+      const size = [4, 3, 3, 2, 2, 2];
+      while (board.occupied.length < 6) {
+        const coords = this.calcTargetCoords();
+        const axis = Math.random() < 0.5 ? false : true;
+        const place = board.placeShip(coords.x, coords.y, size[0], axis);
+        if (place) {
+          size.shift();
+        }
+      }
     },
   };
 };
