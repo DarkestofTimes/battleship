@@ -328,51 +328,29 @@ export const Player = (type) => {
 
       const coordsByY = [...filteredCoords].sort((a, b) => a[1] - b[1]);
 
-      for (let i = 0; i < filteredCoords.length; i++) {
-        const currentX = filteredCoords[i];
-        const previousX = i > 0 ? filteredCoords[i - 1] : filteredCoords[i];
-        const nextX =
-          i < filteredCoords.length - 1 ? filteredCoords[i + 1] : null;
-        const currentY = coordsByY[i];
-        const previousY = i > 0 ? coordsByY[i - 1] : coordsByY[i];
-        const nextY = i < coordsByY.length - 1 ? coordsByY[i + 1] : null;
+      function processArray(arr, tempArr, arrayOfArrays) {
+        for (let i = 0; i < arr.length; i++) {
+          const current = arr[i];
+          const previous = i > 0 ? arr[i - 1] : arr[i];
+          const next = i < arr.length - 1 ? arr[i + 1] : arr[i];
 
-        if (
-          !previousY ||
-          (currentY[1] === previousY[1] && currentY[0] === previousY[0] + 1)
-        ) {
-          tempY.push([currentY[0], currentY[1]]);
-        }
-        if (
-          //prettier-ignore
-          !nextY ||
-          currentY[0] !== nextY[0] - 1 ||
-          currentY[1] !== nextY[1] &&
-            currentY[1] === previousY[1] &&
-            currentY[0] === previousY[0] + 1
-        ) {
-          arrayOfArrays.push([...tempY]);
-          tempY.length = 0;
-        }
-        if (
-          !previousX ||
-          (currentX[0] === previousX[0] && currentX[1] === previousX[1] + 1)
-        ) {
-          tempX.push([currentX[0], currentX[1]]);
-        }
-        if (
-          //prettier-ignore
-          !nextY ||
-          currentX[0] !== nextX[0] ||
-          currentX[1] !== nextX[1] - 1 &&
-            currentY[1] === previousY[1] + 1 &&
-            currentY[0] === previousY[0]
-        ) {
-          arrayOfArrays.push([...tempX]);
-
-          tempX.length = 0;
+          if (current[1] === previous[1] && current[0] === previous[0] + 1) {
+            tempArr.push([current[0], current[1]]);
+          }
+          if (
+            current[0] !== next[0] - 1 ||
+            (current[1] !== next[1] &&
+              current[1] === previous[1] &&
+              current[0] === previous[0] + 1)
+          ) {
+            arrayOfArrays.push([...tempArr]);
+            tempArr.length = 0;
+          }
         }
       }
+
+      processArray(coordsByY, tempY, arrayOfArrays);
+      processArray(filteredCoords, tempX, arrayOfArrays);
 
       const biggerThanBiggest = arrayOfArrays.filter(
         (array) => array.length >= biggest
