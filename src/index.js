@@ -328,19 +328,24 @@ export const Player = (type) => {
 
       const coordsByY = [...filteredCoords].sort((a, b) => a[1] - b[1]);
 
-      for (let i = 1; i < filteredCoords.length - 1; i++) {
+      for (let i = 0; i < filteredCoords.length; i++) {
         const currentX = filteredCoords[i];
-        const previousX = filteredCoords[i - 1];
-        const nextX = filteredCoords[i + 1];
+        const previousX = i > 0 ? filteredCoords[i - 1] : filteredCoords[i];
+        const nextX =
+          i < filteredCoords.length - 1 ? filteredCoords[i + 1] : null;
         const currentY = coordsByY[i];
-        const previousY = coordsByY[i - 1];
-        const nextY = coordsByY[i + 1];
+        const previousY = i > 0 ? coordsByY[i - 1] : coordsByY[i];
+        const nextY = i < coordsByY.length - 1 ? coordsByY[i + 1] : null;
 
-        if (currentY[1] === previousY[1] && currentY[0] === previousY[0] + 1) {
+        if (
+          !previousY ||
+          (currentY[1] === previousY[1] && currentY[0] === previousY[0] + 1)
+        ) {
           tempY.push([currentY[0], currentY[1]]);
         }
         if (
           //prettier-ignore
+          !nextY ||
           currentY[0] !== nextY[0] - 1 ||
           currentY[1] !== nextY[1] &&
             currentY[1] === previousY[1] &&
@@ -349,11 +354,15 @@ export const Player = (type) => {
           arrayOfArrays.push([...tempY]);
           tempY.length = 0;
         }
-        if (currentX[0] === previousX[0] && currentX[1] === previousX[1] + 1) {
+        if (
+          !previousX ||
+          (currentX[0] === previousX[0] && currentX[1] === previousX[1] + 1)
+        ) {
           tempX.push([currentX[0], currentX[1]]);
         }
         if (
           //prettier-ignore
+          !nextY ||
           currentX[0] !== nextX[0] ||
           currentX[1] !== nextX[1] - 1 &&
             currentY[1] === previousY[1] + 1 &&
@@ -372,13 +381,13 @@ export const Player = (type) => {
       const targetArrays = biggerThanBiggest.sort(
         (a, b) => b.length - a.length
       );
+      console.log(targetArrays);
       if (targetArrays.length !== 0) {
         const random = Math.floor(Math.random() * targetArrays.length);
         const targetCoords =
           biggest < 4
             ? targetArrays[random][Math.floor(targetArrays[random].length / 2)]
             : targetArrays[0][Math.floor(targetArrays[0].length / 2)];
-        console.log(targetCoords);
         return { x: targetCoords[0], y: targetCoords[1] };
       } else {
         return false;
