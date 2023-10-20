@@ -212,56 +212,17 @@ export const Player = (type) => {
     nextTarget: [],
     hits: [],
     possibleTargets(coords) {
-      const filterByAxis = (axis) => {
-        let filtered;
-        if (axis == "y") {
-          filtered = this.nextTarget.filter((obj) => {
-            obj.y == coords.y;
-          });
-        } else {
-          filtered = this.nextTarget.filter((obj) => {
-            obj.x == coords.x;
-          });
-        }
-        return filtered;
-      };
-
       let directions = [
         { dx: -1, dy: 0 },
         { dx: 1, dy: 0 },
         { dx: 0, dy: -1 },
         { dx: 0, dy: 1 },
       ];
-      const prevHits = [...this.hits];
-      const lastHit = prevHits.pop();
-      let filteredCoords = [];
-
-      if (lastHit && lastHit.x == coords.x) {
-        // ship is on y axis
-        directions = [
-          { dx: 0, dy: -1 },
-          { dx: 0, dy: 1 },
-        ];
-        const filtered = filterByAxis("x");
-        filtered.forEach((elem) => filteredCoords.push(elem));
-      } else if (lastHit && lastHit.y == coords.y) {
-        // ship is on x axis
-        directions = [
-          { dx: -1, dy: 0 },
-          { dx: 1, dy: 0 },
-        ];
-        const filtered = filterByAxis("y");
-        filtered.forEach((elem) => filteredCoords.push(elem));
-      }
-
       const mappedCoords = directions.map((direction) => ({
         x: coords.x + direction.dx,
         y: coords.y + direction.dy,
       }));
-      mappedCoords.forEach((coord) =>
-        filteredCoords.splice(filteredCoords.length - 3, 0, coord)
-      );
-      const validCoords = filteredCoords.filter((obj) => {
+      const validCoords = mappedCoords.filter((obj) => {
         return obj.x <= 9 && obj.x >= 0 && obj.y <= 9 && obj.y >= 0;
       });
 
@@ -359,7 +320,6 @@ export const Player = (type) => {
       const targetArrays = biggerThanBiggest.sort(
         (a, b) => b.length - a.length
       );
-      console.log(targetArrays);
       if (targetArrays.length !== 0) {
         const random = Math.floor(Math.random() * targetArrays.length);
         const targetCoords =
@@ -390,22 +350,30 @@ export const Player = (type) => {
           (pair) => pair[0] === coords.x && pair[1] === coords.y
         )
       ) {
+        console.log(excluded, "excl");
         coords = this.calcTargetCoords(board);
       }
+      console.log(board.occupied, "occ");
+      console.log(board.visited, "visited");
+      console.log(board.hits, "hits");
+
+      console.log(this.nextTarget, "next");
 
       if (searchTarget && !coords) {
         coords = this.searchPattern(board);
       }
       if (this.nextTarget.length !== 0) {
-        coords = this.nextTarget.pop();
+        coords = this.nextTarget.splice(
+          Math.floor(Math.random() * this.nextTarget.length),
+          1
+        )[0];
       }
-
+      console.log(coords, "coord");
       const attack = board.IncomingAttack(coords.x, coords.y);
       if (attack) {
         const nextCoords = this.possibleTargets(coords);
         nextCoords.forEach((coord) => this.nextTarget.push({ ...coord }));
         this.hits.push(coords);
-
         return true;
       }
       return false;
