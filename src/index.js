@@ -207,7 +207,6 @@ export const Board = () => {
 
 export const Player = (type) => {
   return {
-    current: false,
     type: type,
     nextTarget: [],
     hits: [],
@@ -332,7 +331,7 @@ export const Player = (type) => {
       }
     },
 
-    commitAttack(board, input = this.calcTargetCoords(board)) {
+    commitAttack(board, input = this.searchPattern(board)) {
       //ATTACK
       this.nextTarget = this.nextTarget.filter((element) => {
         return !board.visited.some(
@@ -341,7 +340,6 @@ export const Player = (type) => {
       });
 
       let coords = input;
-      const searchTarget = this.searchPattern(board);
 
       const excluded = this.excludeCells(coords, board);
       const excludedAdnVisited = [...board.visited, ...excluded];
@@ -350,25 +348,16 @@ export const Player = (type) => {
           (pair) => pair[0] === coords.x && pair[1] === coords.y
         )
       ) {
-        console.log(excluded, "excl");
         coords = this.calcTargetCoords(board);
       }
-      console.log(board.occupied, "occ");
-      console.log(board.visited, "visited");
-      console.log(board.hits, "hits");
 
-      console.log(this.nextTarget, "next");
-
-      if (searchTarget && !coords) {
-        coords = this.searchPattern(board);
-      }
       if (this.nextTarget.length !== 0) {
         coords = this.nextTarget.splice(
           Math.floor(Math.random() * this.nextTarget.length),
           1
         )[0];
       }
-      console.log(coords, "coord");
+
       const attack = board.IncomingAttack(coords.x, coords.y);
       if (attack) {
         const nextCoords = this.possibleTargets(coords);
@@ -403,6 +392,7 @@ export const Game = () => {
   };
 
   return {
+    current: human.player.type,
     over: false,
     computer: computer,
     human: human,
@@ -420,25 +410,28 @@ export const Game = () => {
       }
       return false;
     },
-    turn() {
+    turn(input) {
       if (!this.over) {
-        if (computer.player.current == false && human.player.current == false) {
-          human.player.current = true;
-          return human.player.type;
-        }
-        if ((computer.player.current = true)) {
+        if (this.current === "Computer") {
           computer.player.commitAttack(human.board);
-          computer.player.current = false;
-          human.player.current = true;
-          return computer.player.type;
+          this.current = "Human";
+          return true;
         }
-        if ((human.player.current = true)) {
-          human.player.commitAttack(computer.board);
-          human.player.current = false;
-          computer.player.current = true;
-          return human.player.type;
+        if (this.current === "Human") {
+          input
+            ? computer.board.IncomingAttack(input[0], input[1])
+            : human.player.commitAttack(computer.board);
+          this.current = "Computer";
+          return true;
         }
         return false;
+      }
+    },
+    reportCurrentPlayer() {
+      if (this.current === "Human") {
+        return this.current;
+      } else {
+        return this.current;
       }
     },
   };
