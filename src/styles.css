@@ -1,0 +1,90 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.fleetCreationScreen {
+  width: 100%;
+  height: 100vh;
+  padding: 1rem;
+}
+
+.fleetCreationScreen .shipsContainer {
+  height: 20vh;
+  width: clamp(300px, 70%, 900px);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 0.3rem;
+  margin-right: auto;
+  margin-left: auto;
+  place-items: center;
+  margin-bottom: 2rem;
+}
+
+.ship4 {
+  width: clamp(7.2rem, 24vw, 20rem);
+  height: clamp(1.8rem, 6vw, 5rem);
+  border: 2px solid black;
+}
+.ship3 {
+  width: clamp(5.4rem, 18vw, 15rem);
+  height: clamp(1.8rem, 6vw, 5rem);
+  border: 2px solid black;
+}
+
+.ship2 {
+  width: clamp(3.6rem, 12vw, 10rem);
+  height: clamp(1.8rem, 6vw, 5rem);
+  border: 2px solid black;
+}
+
+.fleetCreationScreen .gridContainer {
+  width: min-content;
+  height: min-content;
+  margin-right: auto;
+  margin-left: auto;
+  border: 2px solid black;
+}
+
+.fleetCreationScreen .grid {
+  width: clamp(18rem, 60vw, 50rem);
+  height: clamp(18rem, 60vw, 50rem);
+  margin-right: auto;
+  margin-left: auto;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+}
+
+.cell {
+  width: clamp(1.8rem, 6vw, 5rem);
+  height: clamp(1.8rem, 6vw, 5rem);
+  border: 1px solid black;
+}
+
+.cell:hover {
+  transform: scale(1.15);
+}
+
+.cell:active {
+  position: relative;
+  transform: scale(1);
+  border: 1px solid yellow;
+  z-index: 1;
+}
+
+.cellCan {
+  position: relative;
+  transform: scale(1.15);
+  border: 2px solid green;
+  z-index: 1;
+}
+
+.cellCannot {
+  position: relative;
+  transform: scale(1.15);
+  border: 2px solid red;
+  z-index: 1;
+}
