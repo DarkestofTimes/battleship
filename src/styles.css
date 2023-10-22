@@ -10,33 +10,44 @@
   padding: 1rem;
 }
 
-.fleetCreationScreen .shipsContainer {
-  height: 20vh;
-  width: clamp(300px, 70%, 900px);
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  gap: 0.3rem;
+.fleetCreationScreen .shipContainerWrapper {
+  height: 22vh;
+  width: clamp(300px, 70%, 700px);
+  display: flex;
+  align-items: center;
   margin-right: auto;
   margin-left: auto;
+}
+
+.fleetCreationScreen .shipsContainer {
+  display: grid;
+  margin-right: auto;
   place-items: center;
-  margin-bottom: 2rem;
+  margin-right: auto;
+}
+
+.fleetCreationScreen .shipContainerCount {
+  margin-left: auto;
+  width: 2rem;
+  display: inline;
+  font-size: 2rem;
 }
 
 .ship4 {
-  width: clamp(7.2rem, 24vw, 20rem);
-  height: clamp(1.8rem, 6vw, 5rem);
+  width: clamp(7.2rem, 24vw, 10rem);
+  height: clamp(1.8rem, 6vw, 2.5rem);
   border: 2px solid black;
 }
+
 .ship3 {
-  width: clamp(5.4rem, 18vw, 15rem);
-  height: clamp(1.8rem, 6vw, 5rem);
+  width: clamp(5.4rem, 18vw, 7.5rem);
+  height: clamp(1.8rem, 6vw, 2.5rem);
   border: 2px solid black;
 }
 
 .ship2 {
-  width: clamp(3.6rem, 12vw, 10rem);
-  height: clamp(1.8rem, 6vw, 5rem);
+  width: clamp(3.6rem, 12vw, 5rem);
+  height: clamp(1.8rem, 6vw, 2.5rem);
   border: 2px solid black;
 }
 
@@ -49,8 +60,8 @@
 }
 
 .fleetCreationScreen .grid {
-  width: clamp(18rem, 60vw, 50rem);
-  height: clamp(18rem, 60vw, 50rem);
+  width: clamp(18rem, 60vw, 25rem);
+  height: clamp(18rem, 60vw, 25rem);
   margin-right: auto;
   margin-left: auto;
   display: grid;
@@ -59,8 +70,8 @@
 }
 
 .cell {
-  width: clamp(1.8rem, 6vw, 5rem);
-  height: clamp(1.8rem, 6vw, 5rem);
+  width: clamp(1.8rem, 6vw, 2.5rem);
+  height: clamp(1.8rem, 6vw, 2.5rem);
   border: 1px solid black;
 }
 
@@ -79,6 +90,7 @@
   position: relative;
   transform: scale(1.15);
   border: 2px solid green;
+  background-color: green;
   z-index: 1;
 }
 
@@ -86,5 +98,26 @@
   position: relative;
   transform: scale(1.15);
   border: 2px solid red;
+  background-color: red;
   z-index: 1;
+}
+
+.vertical {
+  position: absolute;
+  transform: rotate(90deg);
+  pointer-events: none;
+}
+.ship4.vertical {
+  transform-origin: 12.5%;
+}
+.ship3.vertical {
+  transform-origin: 16.7%;
+}
+.ship2.vertical {
+  transform-origin: 25%;
+}
+
+.horizontal {
+  position: absolute;
+  pointer-events: none;
 }
