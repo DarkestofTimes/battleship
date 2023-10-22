@@ -488,6 +488,7 @@ __webpack_require__.r(__webpack_exports__);
 
 const RenderGame = () => {
   return {
+    shipsToPlace: [],
     shipsOnGrid: [],
     renderGrid(board) {
       const grids = document.querySelectorAll(".grid");
@@ -504,12 +505,43 @@ const RenderGame = () => {
     },
     populateGrid(draggedOffset, ev, board) {
       const canBe = this.checkIfCanBePlaced(draggedOffset, ev, board);
-
       if (canBe) {
         this.shipsOnGrid.push(canBe);
         return true;
       }
       return false;
+    },
+    renderShips(array, grid) {
+      array.forEach((item) => {
+        const gridArray = Array.from(grid.children);
+        const cell = gridArray.find(
+          (child) =>
+            child.getAttribute("data-x") == item.x[0] &&
+            child.getAttribute("data-y") == item.y[0]
+        );
+
+        const targetRect = cell.getBoundingClientRect();
+        const ship = document.createElement("div");
+        ship.classList.add(`ship${item.size}`);
+        ship.classList.add(`${item.axis ? "horizontal" : "vertical"}`);
+        ship.style.left = targetRect.left + "px";
+        ship.style.top = targetRect.top + "px";
+        grid.appendChild(ship);
+      });
+    },
+    flipShip() {
+      const ships = this.shipsToPlace;
+      ships.forEach((ship) => {
+        ship.addEventListener("click", (ev) => {
+          if (ev.target.style.transform == "rotate(90deg)") {
+            ev.target.setAttribute("data-axis", "true");
+            ev.target.style.transform = "none";
+          } else {
+            ev.target.setAttribute("data-axis", "false");
+            ev.target.style.transform = "rotate(90deg)";
+          }
+        });
+      });
     },
     checkIfCanBePlaced(draggedOffset, ev, board) {
       const axis = draggedOffset.axis == "true" ? true : false;
@@ -536,28 +568,65 @@ const RenderGame = () => {
       }
       return false;
     },
+    createShipsToPlace() {
+      const sizes = [4, 3, 3, 2, 2, 2];
+
+      while (this.shipsToPlace.length < 6) {
+        const ship = document.createElement("div");
+        const size = sizes.shift();
+        ship.setAttribute("data-size", size);
+        ship.setAttribute("data-axis", true);
+        ship.classList.add("shipCreate", `ship${size}`);
+        ship.setAttribute("draggable", true);
+        this.shipsToPlace.push(ship);
+      }
+    },
+    giveShipToPlace(isTrue) {
+      const container = document.querySelector(
+        ".fleetCreationScreen .shipsContainer"
+      );
+      const count = document.querySelector(
+        ".fleetCreationScreen .shipContainerCount"
+      );
+      count.textContent = this.shipsToPlace.length;
+      container.appendChild(this.shipsToPlace[0]);
+      if (isTrue) {
+        container.removeChild(container.firstChild);
+        this.shipsToPlace.shift();
+        count.textContent = this.shipsToPlace.length;
+        if (this.shipsToPlace.length !== 0) {
+          container.appendChild(this.shipsToPlace[0]);
+        }
+      }
+    },
+
     highlightCells(draggedOffset, ev, board) {
       const canBe = this.checkIfCanBePlaced(draggedOffset, ev, board);
       const cells = [];
       const x = +ev.target.getAttribute("data-x");
       const y = +ev.target.getAttribute("data-y");
       const offsetBehind = draggedOffset.size - draggedOffset.offset;
-
+      const axis = draggedOffset.axis == "true" ? true : false;
       cells.push(ev.target);
-      for (let i = 0; i <= draggedOffset.offset - 1; i++) {
-        const cell = document.querySelector(
-          `[data-x='${x - i}'][data-y='${y}']`
-        );
+
+      const addCellIfValid = (cells, x, y) => {
+        const cell = document.querySelector(`[data-x='${x}'][data-y='${y}']`);
         if (cell) {
           cells.push(cell);
         }
+      };
+      for (let i = 0; i <= draggedOffset.offset - 1; i++) {
+        if (axis) {
+          addCellIfValid(cells, x - i, y);
+        } else {
+          addCellIfValid(cells, x, y - i);
+        }
       }
       for (let i = 0; i <= offsetBehind; i++) {
-        const cell = document.querySelector(
-          `[data-x='${x + i}'][data-y='${y}']`
-        );
-        if (cell) {
-          cells.push(cell);
+        if (axis) {
+          addCellIfValid(cells, x + i, y);
+        } else {
+          addCellIfValid(cells, x, y + i);
         }
       }
 
@@ -581,7 +650,7 @@ const RenderGame = () => {
     },
 
     dragElement(board) {
-      const ships = document.querySelectorAll(".fleetCreationScreen .ship");
+      const ships = this.shipsToPlace;
       const grid = document.querySelector(".fleetCreationScreen .grid");
       let draggedOffset;
 
@@ -612,16 +681,20 @@ const RenderGame = () => {
         if (ev.target.classList.contains("cell")) {
           this.highlightCells(draggedOffset, ev, board);
           const pushShip = this.populateGrid(draggedOffset, ev, board);
+          const grid = document.querySelector(".grid");
+          this.renderShips(this.shipsOnGrid, grid);
+          this.giveShipToPlace(pushShip);
         }
       });
 
       const calculateOffset = (element, ev) => {
         const rectEl = element.getBoundingClientRect();
-        const cursor =
-          element.getAttribute("data-axis") == "true" ? ev.clientX : ev.clientY;
-        let startingPoint =
-          element.getAttribute("data-axis") == "true" ? rectEl.x : rectEl.y;
-        const singleCell = rectEl.width / element.getAttribute("data-size");
+        const axis = element.getAttribute("data-axis") == "true" ? true : false;
+        const cursor = axis ? ev.clientX : ev.clientY;
+        let startingPoint = axis ? rectEl.x : rectEl.y;
+        const singleCell = axis
+          ? rectEl.width / element.getAttribute("data-size")
+          : rectEl.height / element.getAttribute("data-size");
         let i = 1;
         while (startingPoint + singleCell < cursor) {
           startingPoint += singleCell;
@@ -636,11 +709,6 @@ const RenderGame = () => {
     },
   };
 };
-
-const board = (0,_game_js__WEBPACK_IMPORTED_MODULE_0__.Board)();
-const startGame = RenderGame();
-startGame.renderGrid(board);
-startGame.dragElement(board);
 
 
 /***/ })
@@ -712,6 +780,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _render_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./render.js */ "./src/render.js");
 
 
+
+const board = (0,_game_js__WEBPACK_IMPORTED_MODULE_0__.Board)();
+const renderGame = (0,_render_js__WEBPACK_IMPORTED_MODULE_1__.RenderGame)();
+renderGame.renderGrid(board); //add event listener to trigger rerendering on screen resize
+renderGame.createShipsToPlace();
+renderGame.dragElement(board);
+
+renderGame.giveShipToPlace();
+renderGame.flipShip();
 
 })();
 
