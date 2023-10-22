@@ -51,6 +51,10 @@
   border: 2px solid black;
 }
 
+.shipCreate {
+  background-color: rebeccapurple;
+}
+
 .fleetCreationScreen .gridContainer {
   width: min-content;
   height: min-content;
@@ -106,6 +110,7 @@
   position: absolute;
   transform: rotate(90deg);
   pointer-events: none;
+  background-color: rebeccapurple;
 }
 .ship4.vertical {
   transform-origin: 12.5%;
@@ -120,4 +125,5 @@
 .horizontal {
   position: absolute;
   pointer-events: none;
+  background-color: rebeccapurple;
 }

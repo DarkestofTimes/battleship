@@ -171,6 +171,9 @@ export const RenderGame = () => {
       ships.forEach((ship) => {
         ship.addEventListener("dragstart", (ev) => {
           draggedOffset = calculateOffset(ship, ev);
+          if (draggedOffset.axis == "false") {
+            this.rotateDraggedGhostImg(ev);
+          }
         });
       });
 
@@ -220,6 +223,27 @@ export const RenderGame = () => {
           axis: element.getAttribute("data-axis"),
         };
       };
+    },
+    rotateDraggedGhostImg(ev) {
+      const ghost = document.createElement("div");
+      if (ev.target.children.length !== 0) {
+        console.log(ev.target.children);
+        ev.target.removeChild(ev.target.firstChild);
+      }
+      ghost.style.position = "absolute";
+      ghost.style.transform = "rotate(90deg)";
+      ghost.style.pointerEvents = "none";
+
+      const inner = ev.target.cloneNode(true);
+      inner.style.pointerEvents = "none";
+      ghost.appendChild(inner);
+
+      const rect = ev.target.getBoundingClientRect();
+      const x = ev.clientX - rect.left + rect.height / 2.8;
+      const y = ev.clientY - rect.top;
+
+      ev.target.appendChild(ghost);
+      ev.dataTransfer.setDragImage(ghost, x, y);
     },
   };
 };
