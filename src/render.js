@@ -2,8 +2,16 @@ import { Ship, Board, Player, Game } from "./game.js";
 
 export const RenderGame = (game) => {
   return {
+    eventListeners: [],
+    turnInProgress: false,
     shipsToPlace: [],
     shipsOnGrid: [],
+    clearEventListeners() {
+      while (this.eventListeners.length !== 0) {
+        const listener = this.eventListeners.pop();
+        listener.elem.removeEventListener(listener.type, listener.listener);
+      }
+    },
     renderGrid(board) {
       const grids = document.querySelectorAll(".grid");
       const cells = board.createGrid();
@@ -25,6 +33,14 @@ export const RenderGame = (game) => {
       }
       return false;
     },
+    clearGrids() {
+      const grids = document.querySelectorAll(".grid");
+      for (const grid of grids) {
+        while (grid.firstChild) {
+          grid.removeChild(grid.firstChild);
+        }
+      }
+    },
     renderShips(array, grid) {
       array.forEach((item) => {
         const gridArray = Array.from(grid.children);
@@ -34,32 +50,70 @@ export const RenderGame = (game) => {
             child.getAttribute("data-y") == item.y[0]
         );
 
-        const targetRect = cell.getBoundingClientRect();
         const ship = document.createElement("div");
-        ship.classList.add(`ship${item.size}`);
+        ship.classList.add(`ship${item.size}`, "ship");
         ship.classList.add(`${item.axis ? "horizontal" : "vertical"}`);
-        ship.style.left = targetRect.left + "px";
-        ship.style.top = targetRect.top + "px";
-        grid.appendChild(ship);
+        cell.appendChild(ship);
+      });
+    },
+    renderMiss(array, grid) {
+      array.forEach((item) => {
+        const gridArray = Array.from(grid.children);
+        const cell = gridArray.find(
+          (child) =>
+            child.getAttribute("data-x") == item[0] &&
+            child.getAttribute("data-y") == item[1]
+        );
+        cell.textContent = "*";
+      });
+    },
+    renderHit(array, grid) {
+      array.forEach((item) => {
+        const gridArray = Array.from(grid.children);
+        const cell = gridArray.find(
+          (child) =>
+            child.getAttribute("data-x") == item[0] &&
+            child.getAttribute("data-y") == item[1]
+        );
+        cell.style.backgroundColor = "hsla(271, 76%, 53%, 0.274)";
+        cell.style.border = "3px solid hsla(271, 76%, 53%, 0.774)";
+        cell.textContent = "X";
+      });
+    },
+    renderAttacks(array, grid) {
+      array.forEach((item) => {
+        const gridArray = Array.from(grid.children);
+        const cell = gridArray.find(
+          (child) =>
+            child.getAttribute("data-x") == item[0] &&
+            child.getAttribute("data-y") == item[1]
+        );
+        cell.style.backgroundColor = "rgba(0, 0, 0, 0.356)";
+        cell.textContent = "+";
       });
     },
     flipShip() {
       const ships = this.shipsToPlace;
+      const flipHandler = (ev) => {
+        if (ev.target.style.transform == "rotate(90deg)") {
+          ev.target.setAttribute("data-axis", "true");
+          ev.target.style.transform = "none";
+        } else {
+          ev.target.setAttribute("data-axis", "false");
+          ev.target.style.transform = "rotate(90deg)";
+        }
+      };
       ships.forEach((ship) => {
-        ship.addEventListener("click", (ev) => {
-          if (ev.target.style.transform == "rotate(90deg)") {
-            ev.target.setAttribute("data-axis", "true");
-            ev.target.style.transform = "none";
-          } else {
-            ev.target.setAttribute("data-axis", "false");
-            ev.target.style.transform = "rotate(90deg)";
-          }
+        ship.addEventListener("click", flipHandler);
+        this.eventListeners.push({
+          elem: ship,
+          type: "click",
+          listener: flipHandler,
         });
       });
     },
     createShipsToPlace() {
       const sizes = [4, 3, 3, 2, 2, 2];
-
       while (this.shipsToPlace.length < 6) {
         const ship = document.createElement("div");
         const size = sizes.shift();
@@ -169,32 +223,14 @@ export const RenderGame = (game) => {
       const grid = document.querySelector(".fleetCreationScreen .grid");
       let draggedOffset;
 
-      ships.forEach((ship) => {
-        ship.addEventListener("dragstart", (ev) => {
-          draggedOffset = calculateOffset(ship, ev);
-          if (draggedOffset.axis == "false") {
-            this.rotateDraggedGhostImg(ev);
-          }
-        });
-      });
-
-      grid.addEventListener("dragover", (ev) => {
-        ev.preventDefault();
-      });
-
-      grid.addEventListener("dragenter", (ev) => {
-        if (ev.target.classList.contains("cell")) {
-          this.highlightCells(draggedOffset, ev, board);
+      const dragStartEvHandler = (ship, ev) => {
+        draggedOffset = calculateOffset(ship, ev);
+        if (draggedOffset.axis == "false") {
+          this.rotateDraggedGhostImg(ev);
         }
-      });
+      };
 
-      grid.addEventListener("dragleave", (ev) => {
-        if (ev.target.classList.contains("cell")) {
-          this.highlightCells(draggedOffset, ev, board);
-        }
-      });
-
-      grid.addEventListener("drop", (ev) => {
+      const dropEventHandler = (ev) => {
         ev.preventDefault();
         if (ev.target.classList.contains("cell")) {
           this.highlightCells(draggedOffset, ev, board);
@@ -204,9 +240,67 @@ export const RenderGame = (game) => {
           this.giveShipToPlace(pushShip);
           if (game.IsReady(this.shipsOnGrid)) {
             game.newGame(this.shipsOnGrid);
-            setTimeout(() => this.changeScreen(game), 1000);
+            setTimeout(() => {
+              this.changeScreen(game);
+              this.gridGameListeners(game);
+            }, 1000);
           }
         }
+      };
+
+      const dragOverHandler = (ev) => {
+        ev.preventDefault();
+      };
+
+      const dragEnterHandler = (ev) => {
+        if (ev.target.classList.contains("cell")) {
+          this.highlightCells(draggedOffset, ev, board);
+        }
+      };
+
+      const dragLeaveHandler = (ev) => {
+        if (ev.target.classList.contains("cell")) {
+          this.highlightCells(draggedOffset, ev, board);
+        }
+      };
+
+      ships.forEach((ship) => {
+        ship.addEventListener("dragstart", (ev) =>
+          dragStartEvHandler(ship, ev)
+        );
+        this.eventListeners.push({
+          elem: ship,
+          type: "dragstart",
+          listener: dragStartEvHandler,
+        });
+      });
+
+      grid.addEventListener("dragover", dragOverHandler);
+      this.eventListeners.push({
+        elem: grid,
+        type: "dragover",
+        listener: dragOverHandler,
+      });
+
+      grid.addEventListener("dragenter", dragEnterHandler);
+      this.eventListeners.push({
+        elem: grid,
+        type: "dragenter",
+        listener: dragEnterHandler,
+      });
+
+      grid.addEventListener("dragleave", dragLeaveHandler);
+      this.eventListeners.push({
+        elem: grid,
+        type: "dragleave",
+        listener: dragLeaveHandler,
+      });
+
+      grid.addEventListener("drop", dropEventHandler);
+      this.eventListeners.push({
+        elem: grid,
+        type: "drop",
+        listener: dropEventHandler,
       });
 
       const calculateOffset = (element, ev) => {
@@ -264,8 +358,68 @@ export const RenderGame = (game) => {
         setTimeout(() => {
           gameScreen.classList.add("slideDown");
           startScreen.style.display = "none";
-        }, 1400);
+        }, 1300);
+
+        this.renderGridContent(game);
       }
+    },
+    renderGridContent(game) {
+      const playerGrid = document.querySelector(".playerGrid");
+      const computerGrid = document.querySelector(".opponentGrid");
+      const playerBoard = game.human.board;
+      const computerBoard = game.computer.board;
+      this.clearGrids();
+      this.renderGrid(playerBoard);
+      this.renderMiss(playerBoard.visited, playerGrid);
+      this.renderMiss(computerBoard.visited, computerGrid);
+      this.renderAttacks(computerBoard.attacks, computerGrid);
+      this.renderAttacks(playerBoard.attacks, playerGrid);
+      this.renderHit(playerBoard.hits, playerGrid);
+      this.renderHit(computerBoard.hits, computerGrid);
+      this.renderShips(playerBoard.occupied, playerGrid);
+      this.renderShips(computerBoard.sunken, computerGrid);
+      this.announceTurn(game);
+      this.announceScore(game);
+    },
+    gridGameListeners(game) {
+      const board = game.computer.board;
+      const grid = document.querySelector(".opponentGrid");
+
+      const gridClickHandler = (ev) => {
+        if (ev.target.classList.contains("cell")) {
+          const cell = [
+            +ev.target.getAttribute("data-x"),
+            +ev.target.getAttribute("data-y"),
+          ];
+          if (board.checkCoords(cell) && !this.turnInProgress) {
+            game.turn(cell);
+            this.renderGridContent(game);
+            this.turnInProgress = true;
+            setTimeout(() => {
+              game.turn();
+              this.renderGridContent(game);
+              this.turnInProgress = false;
+            }, 1500);
+          }
+        }
+      };
+      grid.addEventListener("click", gridClickHandler);
+      this.eventListeners.push({
+        elem: grid,
+        type: "click",
+        listener: gridClickHandler,
+      });
+    },
+    announceTurn(game) {
+      const turnOutlet = document.querySelector(".turnAnnouncement");
+      turnOutlet.textContent = `Turn: ${game.turns}`;
+    },
+    announceScore(game) {
+      const computerScoreOutlet = document.querySelector(".playerSunken");
+      const playerScoreOutlet = document.querySelector(".opponentSunken");
+
+      computerScoreOutlet.textContent = `${game.human.board.sunken.length} / ${game.human.board.occupied.length}`;
+      playerScoreOutlet.textContent = `${game.computer.board.sunken.length} / ${game.computer.board.occupied.length}`;
     },
   };
 };

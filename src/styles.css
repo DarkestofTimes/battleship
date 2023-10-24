@@ -18,6 +18,7 @@ body {
   top: 0;
   transition: transform 1.3s ease;
   transform: translateY(0%);
+  position: absolute;
 }
 
 .fleetCreationScreen .shipContainerWrapper {
@@ -44,28 +45,6 @@ body {
   font-size: 2rem;
 }
 
-.ship4 {
-  width: clamp(7.2rem, 24vw, 10rem);
-  height: clamp(1.8rem, 6vw, 2.5rem);
-  border: 2px solid black;
-}
-
-.ship3 {
-  width: clamp(5.4rem, 18vw, 7.5rem);
-  height: clamp(1.8rem, 6vw, 2.5rem);
-  border: 2px solid black;
-}
-
-.ship2 {
-  width: clamp(3.6rem, 12vw, 5rem);
-  height: clamp(1.8rem, 6vw, 2.5rem);
-  border: 2px solid black;
-}
-
-.shipCreate {
-  background-color: rebeccapurple;
-}
-
 .fleetCreationScreen .gridContainer {
   width: min-content;
   height: min-content;
@@ -85,10 +64,16 @@ body {
   background-color: hsla(123, 84%, 45%, 0.397);
 }
 
+/* CELL */
+
 .cell {
   width: clamp(1.8rem, 6vw, 2.5rem);
   height: clamp(1.8rem, 6vw, 2.5rem);
   border: 1px solid black;
+  font-size: 1.8rem;
+  font-weight: bold;
+  display: grid;
+  place-content: center;
 }
 
 .cell:hover {
@@ -118,6 +103,33 @@ body {
   z-index: 1;
 }
 
+/* SHIP */
+
+.ship4 {
+  width: clamp(7.2rem, 24vw, 10rem);
+  height: clamp(1.8rem, 6vw, 2.5rem);
+  border: 2px solid black;
+  border-radius: 60%;
+}
+
+.ship3 {
+  width: clamp(5.4rem, 18vw, 7.5rem);
+  height: clamp(1.8rem, 6vw, 2.5rem);
+  border: 2px solid black;
+  border-radius: 60%;
+}
+
+.ship2 {
+  width: clamp(3.6rem, 12vw, 5rem);
+  height: clamp(1.8rem, 6vw, 2.5rem);
+  border: 2px solid black;
+  border-radius: 100%;
+}
+
+.shipCreate {
+  background-color: rebeccapurple;
+}
+
 .vertical {
   position: absolute;
   transform: rotate(90deg);
@@ -138,6 +150,12 @@ body {
   position: absolute;
   pointer-events: none;
   background-color: rebeccapurple;
+}
+
+.ship {
+  display: grid;
+  align-self: center;
+  pointer-events: none;
 }
 
 /* GAME */
@@ -185,6 +203,12 @@ body {
   text-align: center;
   font-size: 2rem;
   font-weight: bold;
+}
+
+.turnAnnouncement {
+  font-weight: bold;
+  font-size: 2rem;
+  text-align: center;
 }
 
 footer {

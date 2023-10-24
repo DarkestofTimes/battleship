@@ -3,7 +3,7 @@ export const Ship = (num, bool) => {
     size: num,
     hits: 0,
     isSunk: false,
-    xAxis: bool,
+    axis: bool,
     x: [],
     y: [],
     wasHit() {
@@ -96,7 +96,7 @@ export const Board = () => {
       //place
       if (this.canBePlaced(x, y, size, axis, this.occupied).can) {
         const newShip = Ship(size, axis);
-        if (newShip.xAxis) {
+        if (newShip.axis) {
           newShip.y.push(y);
           newShip.x.push(x);
           for (let i = 1; i <= size - 1; i++) {
@@ -149,12 +149,19 @@ export const Board = () => {
 
       return mappedCoords.map(({ x, y }) => [x, y]);
     },
-
-    IncomingAttack(x, y) {
-      // attack
-      if (this.visited.some((pair) => pair[0] === x && pair[1] === y)) {
+    checkCoords(coord) {
+      if (
+        this.visited.some(
+          (pair) => pair[0] === coord[0] && pair[1] === coord[1]
+        )
+      ) {
         return false;
       }
+      return true;
+    },
+    IncomingAttack(x, y) {
+      // attack
+
       this.visited.push([x, y]);
       this.attacks.push([x, y]);
 
@@ -174,9 +181,7 @@ export const Board = () => {
           );
           marks.forEach((mark) => {
             if (
-              !this.visited.some(
-                (pair) => pair[0] === mark[0] && pair[1] === mark[1]
-              ) &&
+              this.checkCoords(mark) &&
               mark[0] >= 0 &&
               mark[0] <= 9 &&
               mark[1] >= 0 &&
@@ -191,9 +196,7 @@ export const Board = () => {
 
         marks.forEach((mark) => {
           if (
-            !this.visited.some(
-              (pair) => pair[0] === mark[0] && pair[1] === mark[1]
-            ) &&
+            this.checkCoords(mark) &&
             mark[0] >= 0 &&
             mark[0] <= 9 &&
             mark[1] >= 0 &&
@@ -353,9 +356,9 @@ export const Player = (type) => {
       let coords = input;
 
       const excluded = this.excludeCells(coords, board);
-      const excludedAdnVisited = [...board.visited, ...excluded];
+      const excludedAndVisited = [...board.visited, ...excluded];
       while (
-        excludedAdnVisited.some(
+        excludedAndVisited.some(
           (pair) => pair[0] === coords.x && pair[1] === coords.y
         )
       ) {
@@ -404,7 +407,7 @@ export const Game = () => {
 
   return {
     current: human.player.type,
-    turns: 0,
+    turns: 1,
     over: false,
     computer: computer,
     human: human,
@@ -433,7 +436,7 @@ export const Game = () => {
       return false;
     },
     turn(input) {
-      if (!this.over) {
+      if (!this.declareWinner()) {
         if (this.current === "Computer") {
           computer.player.commitAttack(human.board);
           this.current = "Human";
