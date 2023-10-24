@@ -1,6 +1,6 @@
 import { Ship, Board, Player, Game } from "./game.js";
 
-export const RenderGame = () => {
+export const RenderGame = (game) => {
   return {
     shipsToPlace: [],
     shipsOnGrid: [],
@@ -57,31 +57,6 @@ export const RenderGame = () => {
         });
       });
     },
-    checkIfCanBePlaced(draggedOffset, ev, board) {
-      const axis = draggedOffset.axis == "true" ? true : false;
-      const offsetX = axis
-        ? ev.target.getAttribute("data-x") - draggedOffset.offset + 1
-        : +ev.target.getAttribute("data-x");
-      const offsetY = axis
-        ? +ev.target.getAttribute("data-y")
-        : ev.target.getAttribute("data-y") - draggedOffset.offset + 1;
-      const canBe = board.canBePlaced(
-        offsetX,
-        offsetY,
-        draggedOffset.size,
-        axis,
-        this.shipsOnGrid
-      );
-      if (canBe.can) {
-        return {
-          x: canBe[0].cx,
-          y: canBe[0].cy,
-          size: draggedOffset.size,
-          axis: axis,
-        };
-      }
-      return false;
-    },
     createShipsToPlace() {
       const sizes = [4, 3, 3, 2, 2, 2];
 
@@ -112,6 +87,32 @@ export const RenderGame = () => {
           container.appendChild(this.shipsToPlace[0]);
         }
       }
+    },
+    checkIfCanBePlaced(draggedOffset, ev, board) {
+      //calculates first cell of the ship and check if its a valid spot
+      const axis = draggedOffset.axis == "true" ? true : false;
+      const offsetX = axis
+        ? ev.target.getAttribute("data-x") - draggedOffset.offset + 1
+        : +ev.target.getAttribute("data-x");
+      const offsetY = axis
+        ? +ev.target.getAttribute("data-y")
+        : ev.target.getAttribute("data-y") - draggedOffset.offset + 1;
+      const canBe = board.canBePlaced(
+        offsetX,
+        offsetY,
+        draggedOffset.size,
+        axis,
+        this.shipsOnGrid
+      );
+      if (canBe.can) {
+        return {
+          x: canBe[0].cx,
+          y: canBe[0].cy,
+          size: draggedOffset.size,
+          axis: axis,
+        };
+      }
+      return false;
     },
 
     highlightCells(draggedOffset, ev, board) {
@@ -201,6 +202,10 @@ export const RenderGame = () => {
           const grid = document.querySelector(".grid");
           this.renderShips(this.shipsOnGrid, grid);
           this.giveShipToPlace(pushShip);
+          if (game.IsReady(this.shipsOnGrid)) {
+            game.newGame(this.shipsOnGrid);
+            setTimeout(() => this.changeScreen(game), 1000);
+          }
         }
       });
 
@@ -227,7 +232,6 @@ export const RenderGame = () => {
     rotateDraggedGhostImg(ev) {
       const ghost = document.createElement("div");
       if (ev.target.children.length !== 0) {
-        console.log(ev.target.children);
         ev.target.removeChild(ev.target.firstChild);
       }
       ghost.style.position = "absolute";
@@ -244,6 +248,24 @@ export const RenderGame = () => {
 
       ev.target.appendChild(ghost);
       ev.dataTransfer.setDragImage(ghost, x, y);
+    },
+    changeScreen(game) {
+      const startScreen = document.querySelector(".fleetCreationScreen");
+      const gameScreen = document.querySelector(".gamePlayScreen");
+      if (!game.IsReady(game.human.board.occupied)) {
+        startScreen.style.display = "block";
+        startScreen.classList.remove("slideUp");
+        gameScreen.style.display = "none";
+        gameScreen.classList.remove("slideDown");
+      } else {
+        startScreen.classList.add("slideUp");
+        gameScreen.style.display = "block";
+
+        setTimeout(() => {
+          gameScreen.classList.add("slideDown");
+          startScreen.style.display = "none";
+        }, 1400);
+      }
     },
   };
 };

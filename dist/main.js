@@ -41,6 +41,7 @@ const Board = () => {
     visited: [],
     occupied: [],
     sunken: [],
+    attacks: [],
     hits: [],
     createGrid() {
       const axis = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -131,12 +132,7 @@ const Board = () => {
         return false;
       }
     },
-    fleetIsReady(array) {
-      if (array.length === 6) {
-        return true;
-      }
-      return false;
-    },
+
     markAdjacent(coordsObject, sunk) {
       let directions;
       if (!sunk) {
@@ -177,6 +173,7 @@ const Board = () => {
         return false;
       }
       this.visited.push([x, y]);
+      this.attacks.push([x, y]);
 
       const theRightShip = this.occupied.filter(
         (obj) => obj.x.includes(x) && obj.y.includes(y)
@@ -424,14 +421,23 @@ const Game = () => {
 
   return {
     current: human.player.type,
+    turns: 0,
     over: false,
     computer: computer,
     human: human,
+    IsReady(array) {
+      if (array.length === 6) {
+        return true;
+      }
+      return false;
+    },
     newGame(input) {
       computer.player.createFleet(computer.board);
       !input
         ? human.player.createFleet(human.board)
-        : input.forEach((item) => human.board.placeShip(item));
+        : input.forEach((item) =>
+            human.board.placeShip(item.x[0], item.y[0], item.size, item.axis)
+          );
     },
     declareWinner() {
       if (human.board.isOver()) {
@@ -455,10 +461,14 @@ const Game = () => {
             ? computer.board.IncomingAttack(input[0], input[1])
             : human.player.commitAttack(computer.board);
           this.current = "Computer";
+          this.turns++;
           return true;
         }
-        return false;
       }
+      return false;
+    },
+    reportTurns() {
+      return this.turns;
     },
     reportCurrentPlayer() {
       if (this.current === "Human") {
@@ -486,7 +496,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _game_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./game.js */ "./src/game.js");
 
 
-const RenderGame = () => {
+const RenderGame = (game) => {
   return {
     shipsToPlace: [],
     shipsOnGrid: [],
@@ -543,31 +553,6 @@ const RenderGame = () => {
         });
       });
     },
-    checkIfCanBePlaced(draggedOffset, ev, board) {
-      const axis = draggedOffset.axis == "true" ? true : false;
-      const offsetX = axis
-        ? ev.target.getAttribute("data-x") - draggedOffset.offset + 1
-        : +ev.target.getAttribute("data-x");
-      const offsetY = axis
-        ? +ev.target.getAttribute("data-y")
-        : ev.target.getAttribute("data-y") - draggedOffset.offset + 1;
-      const canBe = board.canBePlaced(
-        offsetX,
-        offsetY,
-        draggedOffset.size,
-        axis,
-        this.shipsOnGrid
-      );
-      if (canBe.can) {
-        return {
-          x: canBe[0].cx,
-          y: canBe[0].cy,
-          size: draggedOffset.size,
-          axis: axis,
-        };
-      }
-      return false;
-    },
     createShipsToPlace() {
       const sizes = [4, 3, 3, 2, 2, 2];
 
@@ -598,6 +583,32 @@ const RenderGame = () => {
           container.appendChild(this.shipsToPlace[0]);
         }
       }
+    },
+    checkIfCanBePlaced(draggedOffset, ev, board) {
+      //calculates first cell of the ship and check if its a valid spot
+      const axis = draggedOffset.axis == "true" ? true : false;
+      const offsetX = axis
+        ? ev.target.getAttribute("data-x") - draggedOffset.offset + 1
+        : +ev.target.getAttribute("data-x");
+      const offsetY = axis
+        ? +ev.target.getAttribute("data-y")
+        : ev.target.getAttribute("data-y") - draggedOffset.offset + 1;
+      const canBe = board.canBePlaced(
+        offsetX,
+        offsetY,
+        draggedOffset.size,
+        axis,
+        this.shipsOnGrid
+      );
+      if (canBe.can) {
+        return {
+          x: canBe[0].cx,
+          y: canBe[0].cy,
+          size: draggedOffset.size,
+          axis: axis,
+        };
+      }
+      return false;
     },
 
     highlightCells(draggedOffset, ev, board) {
@@ -687,6 +698,10 @@ const RenderGame = () => {
           const grid = document.querySelector(".grid");
           this.renderShips(this.shipsOnGrid, grid);
           this.giveShipToPlace(pushShip);
+          if (game.IsReady(this.shipsOnGrid)) {
+            game.newGame(this.shipsOnGrid);
+            setTimeout(() => this.changeScreen(game), 1000);
+          }
         }
       });
 
@@ -713,7 +728,6 @@ const RenderGame = () => {
     rotateDraggedGhostImg(ev) {
       const ghost = document.createElement("div");
       if (ev.target.children.length !== 0) {
-        console.log(ev.target.children);
         ev.target.removeChild(ev.target.firstChild);
       }
       ghost.style.position = "absolute";
@@ -730,6 +744,24 @@ const RenderGame = () => {
 
       ev.target.appendChild(ghost);
       ev.dataTransfer.setDragImage(ghost, x, y);
+    },
+    changeScreen(game) {
+      const startScreen = document.querySelector(".fleetCreationScreen");
+      const gameScreen = document.querySelector(".gamePlayScreen");
+      if (!game.IsReady(game.human.board.occupied)) {
+        startScreen.style.display = "block";
+        startScreen.classList.remove("slideUp");
+        gameScreen.style.display = "none";
+        gameScreen.classList.remove("slideDown");
+      } else {
+        startScreen.classList.add("slideUp");
+        gameScreen.style.display = "block";
+
+        setTimeout(() => {
+          gameScreen.classList.add("slideDown");
+          startScreen.style.display = "none";
+        }, 1400);
+      }
     },
   };
 };
@@ -805,12 +837,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const board = (0,_game_js__WEBPACK_IMPORTED_MODULE_0__.Board)();
-const renderGame = (0,_render_js__WEBPACK_IMPORTED_MODULE_1__.RenderGame)();
+const game = (0,_game_js__WEBPACK_IMPORTED_MODULE_0__.Game)();
+const board = game.human.board;
+const renderGame = (0,_render_js__WEBPACK_IMPORTED_MODULE_1__.RenderGame)(game);
+renderGame.changeScreen(game);
 renderGame.renderGrid(board); //add event listener to trigger rerendering on screen resize
 renderGame.createShipsToPlace();
 renderGame.dragElement(board);
-
 renderGame.giveShipToPlace();
 renderGame.flipShip();
 

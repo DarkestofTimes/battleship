@@ -4,10 +4,20 @@
   box-sizing: border-box;
 }
 
+body {
+  height: 100vh;
+  width: 100%;
+}
+
+/* START */
+
 .fleetCreationScreen {
   width: 100%;
   height: 100vh;
   padding: 1rem;
+  top: 0;
+  transition: transform 1.3s ease;
+  transform: translateY(0%);
 }
 
 .fleetCreationScreen .shipContainerWrapper {
@@ -17,6 +27,7 @@
   align-items: center;
   margin-right: auto;
   margin-left: auto;
+  margin-bottom: 1rem;
 }
 
 .fleetCreationScreen .shipsContainer {
@@ -71,6 +82,7 @@
   display: grid;
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
+  background-color: hsla(123, 84%, 45%, 0.397);
 }
 
 .cell {
@@ -126,4 +138,67 @@
   position: absolute;
   pointer-events: none;
   background-color: rebeccapurple;
+}
+
+/* GAME */
+
+.gamePlayScreen {
+  width: 100%;
+  height: 100vh;
+  padding: 1rem;
+  transition: transform 1.3s ease;
+  transform: translateY(100%);
+}
+
+.gamePlayScreen .opponentBoard,
+.gamePlayScreen .playerBoard {
+  width: min-content;
+  height: min-content;
+  margin-right: auto;
+  margin-left: auto;
+  border: 2px solid black;
+  margin-bottom: 2rem;
+}
+
+.gamePlayScreen .opponentGrid,
+.gamePlayScreen .playerGrid {
+  width: clamp(18rem, 60vw, 25rem);
+  height: clamp(18rem, 60vw, 25rem);
+  margin-right: auto;
+  margin-left: auto;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+}
+
+.playerGrid .cell {
+  background-color: hsla(123, 84%, 45%, 0.263);
+}
+
+.opponentGrid .cell {
+  background-color: hsla(7, 84%, 45%, 0.267);
+}
+
+.opponentSunken,
+.playerSunken {
+  margin: 0.5rem;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+}
+
+/* UTIL */
+
+.slideUp {
+  position: absolute;
+  transform: translateY(-100%);
+}
+.slideDown {
+  position: absolute;
+  transform: translateY(0);
 }

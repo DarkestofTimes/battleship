@@ -24,6 +24,7 @@ export const Board = () => {
     visited: [],
     occupied: [],
     sunken: [],
+    attacks: [],
     hits: [],
     createGrid() {
       const axis = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -114,12 +115,7 @@ export const Board = () => {
         return false;
       }
     },
-    fleetIsReady(array) {
-      if (array.length === 6) {
-        return true;
-      }
-      return false;
-    },
+
     markAdjacent(coordsObject, sunk) {
       let directions;
       if (!sunk) {
@@ -160,6 +156,7 @@ export const Board = () => {
         return false;
       }
       this.visited.push([x, y]);
+      this.attacks.push([x, y]);
 
       const theRightShip = this.occupied.filter(
         (obj) => obj.x.includes(x) && obj.y.includes(y)
@@ -407,14 +404,23 @@ export const Game = () => {
 
   return {
     current: human.player.type,
+    turns: 0,
     over: false,
     computer: computer,
     human: human,
+    IsReady(array) {
+      if (array.length === 6) {
+        return true;
+      }
+      return false;
+    },
     newGame(input) {
       computer.player.createFleet(computer.board);
       !input
         ? human.player.createFleet(human.board)
-        : input.forEach((item) => human.board.placeShip(item));
+        : input.forEach((item) =>
+            human.board.placeShip(item.x[0], item.y[0], item.size, item.axis)
+          );
     },
     declareWinner() {
       if (human.board.isOver()) {
@@ -438,10 +444,14 @@ export const Game = () => {
             ? computer.board.IncomingAttack(input[0], input[1])
             : human.player.commitAttack(computer.board);
           this.current = "Computer";
+          this.turns++;
           return true;
         }
-        return false;
       }
+      return false;
+    },
+    reportTurns() {
+      return this.turns;
     },
     reportCurrentPlayer() {
       if (this.current === "Human") {
