@@ -211,7 +211,7 @@ export const Board = () => {
     },
     reportLost() {
       if (this.sunken.length !== 0) {
-        const lostShip = this.sunken.pop();
+        const lostShip = this.sunken[this.hits.sunken.length - 1];
         return lostShip;
       }
       return false;
@@ -334,12 +334,14 @@ export const Player = (type) => {
         (a, b) => b.length - a.length
       );
       if (targetArrays.length !== 0) {
-        const random = Math.floor(Math.random() * targetArrays.length);
-        const targetCoords =
-          biggest < 4
-            ? targetArrays[random][Math.floor(targetArrays[random].length / 2)]
-            : targetArrays[0][Math.floor(targetArrays[0].length / 2)];
-        return { x: targetCoords[0], y: targetCoords[1] };
+        if (biggest <= 3) {
+          const random = Math.floor(Math.random() * targetArrays.length);
+          const targetCoords =
+            targetArrays[random][
+              Math.floor(targetArrays[random].length / 2 - 1)
+            ];
+          return { x: targetCoords[0], y: targetCoords[1] };
+        }
       } else {
         return false;
       }
@@ -440,6 +442,7 @@ export const Game = () => {
         if (this.current === "Computer") {
           computer.player.commitAttack(human.board);
           this.current = "Human";
+          this.turns++;
           return true;
         }
         if (this.current === "Human") {
@@ -447,7 +450,6 @@ export const Game = () => {
             ? computer.board.IncomingAttack(input[0], input[1])
             : human.player.commitAttack(computer.board);
           this.current = "Computer";
-          this.turns++;
           return true;
         }
       }

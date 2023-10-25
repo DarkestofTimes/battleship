@@ -7,6 +7,7 @@
 body {
   height: 100vh;
   width: 100%;
+  overflow: hidden;
 }
 
 /* START */
@@ -114,14 +115,14 @@ body {
 
 .ship3 {
   width: clamp(5.4rem, 18vw, 7.5rem);
-  height: clamp(1.8rem, 6vw, 2.5rem);
+  height: clamp(1.4rem, 5vw, 2.3rem);
   border: 2px solid black;
   border-radius: 60%;
 }
 
 .ship2 {
   width: clamp(3.6rem, 12vw, 5rem);
-  height: clamp(1.8rem, 6vw, 2.5rem);
+  height: clamp(1.2rem, 4vw, 1.9rem);
   border: 2px solid black;
   border-radius: 100%;
 }
@@ -134,7 +135,7 @@ body {
   position: absolute;
   transform: rotate(90deg);
   pointer-events: none;
-  background-color: rebeccapurple;
+  background-color: rgba(102, 51, 153, 0.557);
 }
 .ship4.vertical {
   transform-origin: 12.5%;
@@ -149,7 +150,7 @@ body {
 .horizontal {
   position: absolute;
   pointer-events: none;
-  background-color: rebeccapurple;
+  background-color: hsla(270, 50%, 40%, 0.553);
 }
 
 .ship {
@@ -158,6 +159,9 @@ body {
   pointer-events: none;
 }
 
+.sunk {
+  background-color: hsla(0, 0%, 0%, 0.557);
+}
 /* GAME */
 
 .gamePlayScreen {
@@ -187,6 +191,11 @@ body {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
+}
+
+.boardWrapper {
+  transition: transform 0.5s ease; /* set to 0.5 to have animation */
+  transform: translateY(0);
 }
 
 .playerGrid .cell {
@@ -222,7 +231,20 @@ footer {
   position: absolute;
   transform: translateY(-100%);
 }
+
 .slideDown {
   position: absolute;
   transform: translateY(0);
+}
+
+.slideToMid {
+  transform: translateY(/* -106.5% */ -116.5%);
+}
+
+.slideFromMid {
+  transform: translateY(/* 106.5% */ 116.5%);
+}
+
+.highlight {
+  box-shadow: 0 0 5px 5px rebeccapurple;
 }

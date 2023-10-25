@@ -228,7 +228,7 @@ const Board = () => {
     },
     reportLost() {
       if (this.sunken.length !== 0) {
-        const lostShip = this.sunken.pop();
+        const lostShip = this.sunken[this.hits.sunken.length - 1];
         return lostShip;
       }
       return false;
@@ -351,12 +351,14 @@ const Player = (type) => {
         (a, b) => b.length - a.length
       );
       if (targetArrays.length !== 0) {
-        const random = Math.floor(Math.random() * targetArrays.length);
-        const targetCoords =
-          biggest < 4
-            ? targetArrays[random][Math.floor(targetArrays[random].length / 2)]
-            : targetArrays[0][Math.floor(targetArrays[0].length / 2)];
-        return { x: targetCoords[0], y: targetCoords[1] };
+        if (biggest <= 3) {
+          const random = Math.floor(Math.random() * targetArrays.length);
+          const targetCoords =
+            targetArrays[random][
+              Math.floor(targetArrays[random].length / 2 - 1)
+            ];
+          return { x: targetCoords[0], y: targetCoords[1] };
+        }
       } else {
         return false;
       }
@@ -457,6 +459,7 @@ const Game = () => {
         if (this.current === "Computer") {
           computer.player.commitAttack(human.board);
           this.current = "Human";
+          this.turns++;
           return true;
         }
         if (this.current === "Human") {
@@ -464,7 +467,6 @@ const Game = () => {
             ? computer.board.IncomingAttack(input[0], input[1])
             : human.player.commitAttack(computer.board);
           this.current = "Computer";
-          this.turns++;
           return true;
         }
       }
@@ -548,11 +550,15 @@ const RenderGame = (game) => {
             child.getAttribute("data-x") == item.x[0] &&
             child.getAttribute("data-y") == item.y[0]
         );
-
         const ship = document.createElement("div");
         ship.classList.add(`ship${item.size}`, "ship");
         ship.classList.add(`${item.axis ? "horizontal" : "vertical"}`);
-        cell.appendChild(ship);
+        if (item.isSunk == true) {
+          ship.classList.add("sunk");
+        }
+        if (cell.children.length === 0) {
+          cell.appendChild(ship);
+        }
       });
     },
     renderMiss(array, grid) {
@@ -589,6 +595,9 @@ const RenderGame = (game) => {
         );
         cell.style.backgroundColor = "rgba(0, 0, 0, 0.356)";
         cell.textContent = "+";
+        if (item == array[array.length - 1]) {
+          cell.style.color = "yellow";
+        }
       });
     },
     flipShip() {
@@ -853,7 +862,6 @@ const RenderGame = (game) => {
       } else {
         startScreen.classList.add("slideUp");
         gameScreen.style.display = "block";
-
         setTimeout(() => {
           gameScreen.classList.add("slideDown");
           startScreen.style.display = "none";
@@ -894,11 +902,16 @@ const RenderGame = (game) => {
             game.turn(cell);
             this.renderGridContent(game);
             this.turnInProgress = true;
+            setTimeout(() => this.alternateGrids(), 900);
+
             setTimeout(() => {
               game.turn();
               this.renderGridContent(game);
-              this.turnInProgress = false;
-            }, 1500);
+              setTimeout(() => {
+                this.turnInProgress = false;
+                this.alternateGrids();
+              }, 2200);
+            }, 2100);
           }
         }
       };
@@ -919,6 +932,25 @@ const RenderGame = (game) => {
 
       computerScoreOutlet.textContent = `${game.human.board.sunken.length} / ${game.human.board.occupied.length}`;
       playerScoreOutlet.textContent = `${game.computer.board.sunken.length} / ${game.computer.board.occupied.length}`;
+    },
+    alternateGrids() {
+      const playerBoard = document.querySelector(".playerBoard");
+      const computerBoard = document.querySelector(".opponentBoard");
+
+      if (playerBoard.classList.contains("highlight")) {
+        playerBoard.classList.remove("highlight");
+        computerBoard.parentElement.classList.remove("slideFromMid");
+        playerBoard.parentElement.classList.remove("slideToMid");
+        computerBoard.classList.add("highlight");
+        return;
+      }
+      if (computerBoard.classList.contains("highlight")) {
+        computerBoard.classList.remove("highlight");
+        playerBoard.classList.add("highlight");
+        computerBoard.parentElement.classList.add("slideFromMid");
+        playerBoard.parentElement.classList.add("slideToMid");
+        return;
+      }
     },
   };
 };

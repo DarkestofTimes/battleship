@@ -49,11 +49,15 @@ export const RenderGame = (game) => {
             child.getAttribute("data-x") == item.x[0] &&
             child.getAttribute("data-y") == item.y[0]
         );
-
         const ship = document.createElement("div");
         ship.classList.add(`ship${item.size}`, "ship");
         ship.classList.add(`${item.axis ? "horizontal" : "vertical"}`);
-        cell.appendChild(ship);
+        if (item.isSunk == true) {
+          ship.classList.add("sunk");
+        }
+        if (cell.children.length === 0) {
+          cell.appendChild(ship);
+        }
       });
     },
     renderMiss(array, grid) {
@@ -90,6 +94,9 @@ export const RenderGame = (game) => {
         );
         cell.style.backgroundColor = "rgba(0, 0, 0, 0.356)";
         cell.textContent = "+";
+        if (item == array[array.length - 1]) {
+          cell.style.color = "yellow";
+        }
       });
     },
     flipShip() {
@@ -354,7 +361,6 @@ export const RenderGame = (game) => {
       } else {
         startScreen.classList.add("slideUp");
         gameScreen.style.display = "block";
-
         setTimeout(() => {
           gameScreen.classList.add("slideDown");
           startScreen.style.display = "none";
@@ -395,11 +401,16 @@ export const RenderGame = (game) => {
             game.turn(cell);
             this.renderGridContent(game);
             this.turnInProgress = true;
+            setTimeout(() => this.alternateGrids(), 900);
+
             setTimeout(() => {
               game.turn();
               this.renderGridContent(game);
-              this.turnInProgress = false;
-            }, 1500);
+              setTimeout(() => {
+                this.turnInProgress = false;
+                this.alternateGrids();
+              }, 2200);
+            }, 2100);
           }
         }
       };
@@ -420,6 +431,25 @@ export const RenderGame = (game) => {
 
       computerScoreOutlet.textContent = `${game.human.board.sunken.length} / ${game.human.board.occupied.length}`;
       playerScoreOutlet.textContent = `${game.computer.board.sunken.length} / ${game.computer.board.occupied.length}`;
+    },
+    alternateGrids() {
+      const playerBoard = document.querySelector(".playerBoard");
+      const computerBoard = document.querySelector(".opponentBoard");
+
+      if (playerBoard.classList.contains("highlight")) {
+        playerBoard.classList.remove("highlight");
+        computerBoard.parentElement.classList.remove("slideFromMid");
+        playerBoard.parentElement.classList.remove("slideToMid");
+        computerBoard.classList.add("highlight");
+        return;
+      }
+      if (computerBoard.classList.contains("highlight")) {
+        computerBoard.classList.remove("highlight");
+        playerBoard.classList.add("highlight");
+        computerBoard.parentElement.classList.add("slideFromMid");
+        playerBoard.parentElement.classList.add("slideToMid");
+        return;
+      }
     },
   };
 };
