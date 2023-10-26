@@ -141,7 +141,7 @@ body {
   margin-left: auto;
   width: 12rem;
   display: inline;
-  font-size: 2rem;
+  font-size: 1.6rem;
 }
 
 .fleetCreationScreen .gridContainer {
@@ -161,6 +161,14 @@ body {
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
   background-color: hsla(123, 84%, 45%, 0.397);
+}
+
+.textOutput {
+  text-align: center;
+  height: 4rem;
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.5rem;
 }
 
 /* GAME */
