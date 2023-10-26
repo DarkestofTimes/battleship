@@ -49,7 +49,10 @@ const Board = () => {
       return grid;
     },
     isOver() {
-      if (this.sunken.length >= this.occupied.length) {
+      if (
+        this.sunken.length >= this.occupied.length &&
+        this.occupied.length !== 0
+      ) {
         return true;
       }
       return false;
@@ -233,6 +236,13 @@ const Board = () => {
       }
       return false;
     },
+    resetBoard() {
+      this.visited.length = 0;
+      this.occupied.length = 0;
+      this.sunken.length = 0;
+      this.attacks.length = 0;
+      this.hits.length = 0;
+    },
   };
 };
 
@@ -411,6 +421,10 @@ const Player = (type) => {
         }
       }
     },
+    resetPlayer() {
+      this.nextTarget.length = 0;
+      this.hits.length = 0;
+    },
   };
 };
 
@@ -482,6 +496,15 @@ const Game = () => {
         return this.current;
       }
     },
+    resetGame() {
+      this.current = human.player.type;
+      this.turns = 1;
+      this.over = false;
+      this.human.player.resetPlayer();
+      this.computer.player.resetPlayer();
+      this.human.board.resetBoard();
+      this.computer.board.resetBoard();
+    },
   };
 };
 
@@ -507,6 +530,7 @@ const RenderGame = (game) => {
     turnInProgress: false,
     shipsToPlace: [],
     shipsOnGrid: [],
+    selected: false,
     clearEventListeners() {
       while (this.eventListeners.length !== 0) {
         const listener = this.eventListeners.pop();
@@ -596,19 +620,35 @@ const RenderGame = (game) => {
         cell.style.backgroundColor = "rgba(0, 0, 0, 0.356)";
         cell.textContent = "+";
         if (item == array[array.length - 1]) {
-          cell.style.color = "yellow";
+          cell.style.color = "red";
         }
       });
     },
     flipShip() {
       const ships = this.shipsToPlace;
+
       const flipHandler = (ev) => {
-        if (ev.target.style.transform == "rotate(90deg)") {
-          ev.target.setAttribute("data-axis", "true");
-          ev.target.style.transform = "none";
-        } else {
-          ev.target.setAttribute("data-axis", "false");
-          ev.target.style.transform = "rotate(90deg)";
+        if (this.isTouchDevice() && !this.selected) {
+          this.selected = true;
+          return;
+        }
+
+        if (this.isTouchDevice() && this.selected) {
+          if (ev.target.style.transform == "rotate(90deg)") {
+            ev.target.setAttribute("data-axis", "true");
+            ev.target.style.transform = "none";
+          } else {
+            ev.target.setAttribute("data-axis", "false");
+            ev.target.style.transform = "rotate(90deg)";
+          }
+        } else if (!this.isTouchDevice()) {
+          if (ev.target.style.transform == "rotate(90deg)") {
+            ev.target.setAttribute("data-axis", "true");
+            ev.target.style.transform = "none";
+          } else {
+            ev.target.setAttribute("data-axis", "false");
+            ev.target.style.transform = "rotate(90deg)";
+          }
         }
       };
       ships.forEach((ship) => {
@@ -639,7 +679,7 @@ const RenderGame = (game) => {
       const count = document.querySelector(
         ".fleetCreationScreen .shipContainerCount"
       );
-      count.textContent = this.shipsToPlace.length;
+      count.textContent = `Click to turn, ${this.shipsToPlace.length} remaining`;
       container.appendChild(this.shipsToPlace[0]);
       if (isTrue) {
         container.removeChild(container.firstChild);
@@ -652,13 +692,14 @@ const RenderGame = (game) => {
     },
     checkIfCanBePlaced(draggedOffset, ev, board) {
       //calculates first cell of the ship and check if its a valid spot
-      const axis = draggedOffset.axis == "true" ? true : false;
+      const axis = draggedOffset.axis;
+
       const offsetX = axis
-        ? ev.target.getAttribute("data-x") - draggedOffset.offset + 1
+        ? +ev.target.getAttribute("data-x") - draggedOffset.offset + 1
         : +ev.target.getAttribute("data-x");
       const offsetY = axis
         ? +ev.target.getAttribute("data-y")
-        : ev.target.getAttribute("data-y") - draggedOffset.offset + 1;
+        : +ev.target.getAttribute("data-y") - draggedOffset.offset + 1;
       const canBe = board.canBePlaced(
         offsetX,
         offsetY,
@@ -666,6 +707,7 @@ const RenderGame = (game) => {
         axis,
         this.shipsOnGrid
       );
+
       if (canBe.can) {
         return {
           x: canBe[0].cx,
@@ -683,7 +725,7 @@ const RenderGame = (game) => {
       const x = +ev.target.getAttribute("data-x");
       const y = +ev.target.getAttribute("data-y");
       const offsetBehind = draggedOffset.size - draggedOffset.offset;
-      const axis = draggedOffset.axis == "true" ? true : false;
+      const axis = draggedOffset.axis;
       cells.push(ev.target);
 
       const addCellIfValid = (cells, x, y) => {
@@ -726,14 +768,15 @@ const RenderGame = (game) => {
       }
     },
 
-    dragElement(board) {
+    dragElement() {
+      const board = game.human.board;
       const ships = this.shipsToPlace;
       const grid = document.querySelector(".fleetCreationScreen .grid");
       let draggedOffset;
 
       const dragStartEvHandler = (ship, ev) => {
         draggedOffset = calculateOffset(ship, ev);
-        if (draggedOffset.axis == "false") {
+        if (draggedOffset.axis == false) {
           this.rotateDraggedGhostImg(ev);
         }
       };
@@ -749,8 +792,7 @@ const RenderGame = (game) => {
           if (game.IsReady(this.shipsOnGrid)) {
             game.newGame(this.shipsOnGrid);
             setTimeout(() => {
-              this.changeScreen(game);
-              this.gridGameListeners(game);
+              this.changeScreen();
             }, 1000);
           }
         }
@@ -827,10 +869,62 @@ const RenderGame = (game) => {
         return {
           offset: i,
           size: +element.getAttribute("data-size"),
-          axis: element.getAttribute("data-axis"),
+          axis: axis,
         };
       };
     },
+    touchPlacement() {
+      const board = game.human.board;
+      const ships = this.shipsToPlace;
+      const grid = document.querySelector(".fleetCreationScreen .grid");
+      let selected;
+
+      const selectEvHandler = (ev) => {
+        ev.target.classList.add("selected");
+        const axis =
+          ev.target.getAttribute("data-axis") == "true" ? true : false;
+        const size = +ev.target.getAttribute("data-size");
+        selected = { offset: 1, axis: axis, size: size };
+      };
+
+      const dropEvHandler = (ev) => {
+        if (ev.target.classList.contains("cell")) {
+          if (selected) {
+            const pushShip = this.populateGrid(selected, ev, board);
+            const grid = document.querySelector(".grid");
+            this.renderShips(this.shipsOnGrid, grid);
+            this.giveShipToPlace(pushShip);
+            if (pushShip) {
+              selected = "";
+              this.selected = false;
+            }
+          }
+          if (game.IsReady(this.shipsOnGrid)) {
+            game.newGame(this.shipsOnGrid);
+            setTimeout(() => {
+              this.changeScreen();
+            }, 1000);
+          }
+        }
+      };
+
+      ships.forEach((ship) => {
+        ship.addEventListener("click", selectEvHandler);
+        this.eventListeners.push({
+          elem: ship,
+          type: "click",
+          listener: selectEvHandler,
+        });
+      });
+
+      grid.addEventListener("click", dropEvHandler);
+      this.eventListeners.push({
+        elem: grid,
+        type: "click",
+        listener: dropEvHandler,
+      });
+    },
+
     rotateDraggedGhostImg(ev) {
       const ghost = document.createElement("div");
       if (ev.target.children.length !== 0) {
@@ -851,30 +945,51 @@ const RenderGame = (game) => {
       ev.target.appendChild(ghost);
       ev.dataTransfer.setDragImage(ghost, x, y);
     },
-    changeScreen(game) {
+    changeScreen() {
       const startScreen = document.querySelector(".fleetCreationScreen");
       const gameScreen = document.querySelector(".gamePlayScreen");
+      const overScreen = document.querySelector(".gameOverScreen");
       if (!game.IsReady(game.human.board.occupied)) {
         startScreen.style.display = "block";
-        startScreen.classList.remove("slideUp");
-        gameScreen.style.display = "none";
-        gameScreen.classList.remove("slideDown");
-      } else {
+
+        /*         gameScreen.style.display = "none";
+        gameScreen.classList.remove("slideFromBeneath"); */
+        overScreen.classList.remove("slideDown");
+        setTimeout(() => {
+          overScreen.style.display = "none";
+          startScreen.classList.remove("slideUp");
+        }, 1300);
+        this.renderGridContent(false);
+      } else if (
+        game.IsReady(game.human.board.occupied) &&
+        !game.declareWinner()
+      ) {
         startScreen.classList.add("slideUp");
         gameScreen.style.display = "block";
         setTimeout(() => {
-          gameScreen.classList.add("slideDown");
+          gameScreen.classList.add("slideFromBeneath");
           startScreen.style.display = "none";
         }, 1300);
-
-        this.renderGridContent(game);
+        this.renderGridContent(false);
+      } else if (game.declareWinner()) {
+        gameScreen.classList.remove("slideFromBeneath");
+        overScreen.style.display = "block";
+        setTimeout(() => {
+          gameScreen.style.display = "none";
+          overScreen.classList.add("slideDown");
+        }, 1300);
+        this.renderGridContent(true);
       }
     },
-    renderGridContent(game) {
-      const playerGrid = document.querySelector(".playerGrid");
-      const computerGrid = document.querySelector(".opponentGrid");
+    renderGridContent(bool) {
+      const over = bool ? "Over" : "";
+      const playerGrid = document.querySelector(`.playerGrid${over}`);
+      const computerGrid = document.querySelector(`.computerGrid${over}`);
       const playerBoard = game.human.board;
       const computerBoard = game.computer.board;
+      const computerArray = bool
+        ? computerBoard.occupied
+        : computerBoard.sunken;
       this.clearGrids();
       this.renderGrid(playerBoard);
       this.renderMiss(playerBoard.visited, playerGrid);
@@ -884,13 +999,13 @@ const RenderGame = (game) => {
       this.renderHit(playerBoard.hits, playerGrid);
       this.renderHit(computerBoard.hits, computerGrid);
       this.renderShips(playerBoard.occupied, playerGrid);
-      this.renderShips(computerBoard.sunken, computerGrid);
-      this.announceTurn(game);
-      this.announceScore(game);
+      this.renderShips(computerBoard.occupied, computerGrid);
+      this.announceTurn(bool);
+      this.announceScore(bool);
     },
-    gridGameListeners(game) {
+    gridGameListeners() {
       const board = game.computer.board;
-      const grid = document.querySelector(".opponentGrid");
+      const grid = document.querySelector(".computerGrid");
 
       const gridClickHandler = (ev) => {
         if (ev.target.classList.contains("cell")) {
@@ -900,17 +1015,29 @@ const RenderGame = (game) => {
           ];
           if (board.checkCoords(cell) && !this.turnInProgress) {
             game.turn(cell);
-            this.renderGridContent(game);
+
+            this.renderGridContent(false);
             this.turnInProgress = true;
-            setTimeout(() => this.alternateGrids(), 900);
+            setTimeout(() => {
+              if (game.declareWinner()) {
+                this.gameOver();
+                return;
+              }
+              this.alternateGrids();
+            }, 900);
 
             setTimeout(() => {
               game.turn();
-              this.renderGridContent(game);
+
+              this.renderGridContent(false);
               setTimeout(() => {
+                if (game.declareWinner()) {
+                  this.gameOver();
+                  return;
+                }
                 this.turnInProgress = false;
                 this.alternateGrids();
-              }, 2200);
+              }, 1500);
             }, 2100);
           }
         }
@@ -922,20 +1049,26 @@ const RenderGame = (game) => {
         listener: gridClickHandler,
       });
     },
-    announceTurn(game) {
-      const turnOutlet = document.querySelector(".turnAnnouncement");
+    announceTurn(bool) {
+      const over = bool ? "Over" : "";
+      const turnOutlet = document.querySelector(`.turnAnnouncement${over}`);
       turnOutlet.textContent = `Turn: ${game.turns}`;
     },
-    announceScore(game) {
-      const computerScoreOutlet = document.querySelector(".playerSunken");
-      const playerScoreOutlet = document.querySelector(".opponentSunken");
+    announceScore(bool) {
+      const over = bool ? "Over" : "";
+      const computerScoreOutlet = document.querySelector(
+        `.playerSunken${over}`
+      );
+      const playerScoreOutlet = document.querySelector(
+        `.computerSunken${over}`
+      );
 
       computerScoreOutlet.textContent = `${game.human.board.sunken.length} / ${game.human.board.occupied.length}`;
       playerScoreOutlet.textContent = `${game.computer.board.sunken.length} / ${game.computer.board.occupied.length}`;
     },
     alternateGrids() {
       const playerBoard = document.querySelector(".playerBoard");
-      const computerBoard = document.querySelector(".opponentBoard");
+      const computerBoard = document.querySelector(".computerBoard");
 
       if (playerBoard.classList.contains("highlight")) {
         playerBoard.classList.remove("highlight");
@@ -950,6 +1083,66 @@ const RenderGame = (game) => {
         computerBoard.parentElement.classList.add("slideFromMid");
         playerBoard.parentElement.classList.add("slideToMid");
         return;
+      }
+    },
+    gameOver() {
+      const winner = game.declareWinner();
+      const winnerAnnouncement = document.querySelector(".winner");
+      this.changeScreen();
+      if (winner == "Human") {
+        winnerAnnouncement.textContent = "Victory!";
+      } else {
+        winnerAnnouncement.textContent = "Defeat.";
+      }
+    },
+    restartGameListener() {
+      const restart = document.querySelector(".restartBtn");
+
+      const restartEvHandler = () => {
+        this.clearEventListeners();
+        game.resetGame();
+        this.turnInProgress = false;
+        this.shipsToPlace.length = 0;
+        this.shipsOnGrid.length = 0;
+        this.changeScreen();
+        this.createShipsToPlace();
+        if (this.isTouchDevice()) {
+          this.touchPlacement();
+        } else {
+          this.dragElement();
+        }
+        this.giveShipToPlace();
+        this.flipShip();
+        this.gridGameListeners();
+        this.restartGameListener();
+      };
+
+      restart.addEventListener("click", restartEvHandler);
+      this.eventListeners.push({
+        elem: restart,
+        type: "click",
+        listener: restartEvHandler,
+      });
+    },
+    initGame() {
+      this.changeScreen();
+      this.createShipsToPlace();
+      this.flipShip();
+      if (this.isTouchDevice()) {
+        this.touchPlacement();
+      } else {
+        this.dragElement();
+      }
+      this.giveShipToPlace();
+
+      this.gridGameListeners();
+      this.restartGameListener();
+    },
+    isTouchDevice() {
+      if ("ontouchstart" in window || navigator.maxTouchPoints) {
+        return true;
+      } else {
+        return false;
       }
     },
   };
@@ -1027,14 +1220,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const game = (0,_game_js__WEBPACK_IMPORTED_MODULE_0__.Game)();
-const board = game.human.board;
 const renderGame = (0,_render_js__WEBPACK_IMPORTED_MODULE_1__.RenderGame)(game);
-renderGame.changeScreen(game);
-renderGame.renderGrid(board); //add event listener to trigger rerendering on screen resize
-renderGame.createShipsToPlace();
-renderGame.dragElement(board);
-renderGame.giveShipToPlace();
-renderGame.flipShip();
+renderGame.initGame();
 
 })();
 
