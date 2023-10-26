@@ -32,7 +32,10 @@ export const Board = () => {
       return grid;
     },
     isOver() {
-      if (this.sunken.length >= this.occupied.length) {
+      if (
+        this.sunken.length >= this.occupied.length &&
+        this.occupied.length !== 0
+      ) {
         return true;
       }
       return false;
@@ -216,6 +219,13 @@ export const Board = () => {
       }
       return false;
     },
+    resetBoard() {
+      this.visited.length = 0;
+      this.occupied.length = 0;
+      this.sunken.length = 0;
+      this.attacks.length = 0;
+      this.hits.length = 0;
+    },
   };
 };
 
@@ -394,6 +404,10 @@ export const Player = (type) => {
         }
       }
     },
+    resetPlayer() {
+      this.nextTarget.length = 0;
+      this.hits.length = 0;
+    },
   };
 };
 
@@ -464,6 +478,15 @@ export const Game = () => {
       } else {
         return this.current;
       }
+    },
+    resetGame() {
+      this.current = human.player.type;
+      this.turns = 1;
+      this.over = false;
+      this.human.player.resetPlayer();
+      this.computer.player.resetPlayer();
+      this.human.board.resetBoard();
+      this.computer.board.resetBoard();
     },
   };
 };
