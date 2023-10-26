@@ -555,7 +555,10 @@ const RenderGame = (game) => {
       if (canBe) {
         this.shipsOnGrid.push(canBe);
         return true;
+      } else {
+        this.placementTip();
       }
+
       return false;
     },
     clearGrids() {
@@ -679,7 +682,13 @@ const RenderGame = (game) => {
       const count = document.querySelector(
         ".fleetCreationScreen .shipContainerCount"
       );
-      count.textContent = `Click to turn, ${this.shipsToPlace.length} remaining`;
+      if (this.isTouchDevice()) {
+        count.textContent = `Touch to select, touch again to rotate, touch grid cell to place, remaining: ${this.shipsToPlace.length}`;
+        count.style.fontSize = "1.3rem";
+      } else {
+        count.textContent = `Click to rotate, drag to place, remaining: ${this.shipsToPlace.length}`;
+      }
+
       container.appendChild(this.shipsToPlace[0]);
       if (isTrue) {
         container.removeChild(container.firstChild);
@@ -951,9 +960,6 @@ const RenderGame = (game) => {
       const overScreen = document.querySelector(".gameOverScreen");
       if (!game.IsReady(game.human.board.occupied)) {
         startScreen.style.display = "block";
-
-        /*         gameScreen.style.display = "none";
-        gameScreen.classList.remove("slideFromBeneath"); */
         overScreen.classList.remove("slideDown");
         setTimeout(() => {
           overScreen.style.display = "none";
@@ -999,7 +1005,7 @@ const RenderGame = (game) => {
       this.renderHit(playerBoard.hits, playerGrid);
       this.renderHit(computerBoard.hits, computerGrid);
       this.renderShips(playerBoard.occupied, playerGrid);
-      this.renderShips(computerBoard.occupied, computerGrid);
+      this.renderShips(computerArray, computerGrid);
       this.announceTurn(bool);
       this.announceScore(bool);
     },
@@ -1106,13 +1112,14 @@ const RenderGame = (game) => {
         this.shipsOnGrid.length = 0;
         this.changeScreen();
         this.createShipsToPlace();
+        this.flipShip();
         if (this.isTouchDevice()) {
           this.touchPlacement();
         } else {
           this.dragElement();
         }
         this.giveShipToPlace();
-        this.flipShip();
+
         this.gridGameListeners();
         this.restartGameListener();
       };
@@ -1144,6 +1151,11 @@ const RenderGame = (game) => {
       } else {
         return false;
       }
+    },
+    placementTip() {
+      const textOutput = document.querySelector(".textOutput");
+
+      textOutput.textContent = "Too close to the edge or other ships";
     },
   };
 };
