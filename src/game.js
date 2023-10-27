@@ -251,7 +251,7 @@ export const Player = (type) => {
 
       return validCoords;
     },
-    excludeCells(coord, board) {
+    /* excludeCells(coord, board) {
       const dirs = [];
       const map = (coord, board) => {
         const temp = [];
@@ -283,7 +283,7 @@ export const Player = (type) => {
       }
 
       return dirs;
-    },
+    }, */
     calcTargetCoords(board) {
       const grid = board.createGrid();
       const filteredCoords = grid.filter((element) => {
@@ -295,7 +295,7 @@ export const Player = (type) => {
       const coords = filteredCoords[random];
       return { x: coords[0], y: coords[1] };
     },
-    searchPattern(board) {
+    /* searchPattern(board) {
       const tempX = [];
       const tempY = [];
       const arrayOfArrays = [];
@@ -318,20 +318,37 @@ export const Player = (type) => {
           const previous = i > 0 ? arr[i - 1] : arr[i];
           const next = i < arr.length - 1 ? arr[i + 1] : arr[i];
 
-          if (current[1] === previous[1] && current[0] === previous[0] + 1) {
+          if (
+            (current[1] === previous[1] && current[0] === previous[0]) ||
+            (current[1] === previous[1] && current[0] === previous[0] + 1) ||
+            (previous[0] === 9 && current[0] === 0)
+          ) {
+            tempArr.push([current[0], current[1]]);
+          } else if (
+            (current[1] === previous[1] + 1 && current[0] === previous[0]) ||
+            (previous[1] === 9 && current[1] === 0)
+          ) {
             tempArr.push([current[0], current[1]]);
           }
+
           if (
-            current[0] !== next[0] - 1 ||
-            (current[1] !== next[1] &&
+            tempArr.length == size ||
+            ((current[0] !== next[0] - 1 || current[1] !== next[1]) &&
               current[1] === previous[1] &&
               current[0] === previous[0] + 1)
           ) {
             arrayOfArrays.push([...tempArr]);
             tempArr.length = 0;
+          } else if (
+            tempArr.length == size ||
+            ((current[0] !== next[0] || current[1] !== next[1] - 1) &&
+              current[1] === previous[1] + 1 &&
+              current[0] === previous[0])
+          ) {
+            arrayOfArrays.push([...tempArr]);
+            tempArr.length = 0;
           }
         }
-      }
 
       processArray(coordsByY, tempY, arrayOfArrays);
       processArray(filteredCoords, tempX, arrayOfArrays);
@@ -355,9 +372,114 @@ export const Player = (type) => {
       } else {
         return false;
       }
+    }, */
+    probabilityDensitySearch(board) {
+      const arrayOfArrays = [];
+      const alive = board.occupied.filter((ship) => {
+        return ship.isSunk === false;
+      });
+      const sizes = [];
+      const uniques = new Set();
+      alive.forEach((ship) => {
+        if (!uniques.has(ship.size)) {
+          uniques.add(ship.size);
+          sizes.push(ship.size);
+        }
+      });
+
+      const checkDirections = (cell, arrayOfArrays, size) => {
+        const tempLeft = [];
+        const tempRight = [];
+        const tempUp = [];
+        const tempDown = [];
+        for (let i = 0; i <= size - 1; i++) {
+          tempLeft.push([cell[0] - i, cell[1]]);
+          tempRight.push([cell[0] + i, cell[1]]);
+          tempUp.push([cell[0], cell[1] - i]);
+          tempDown.push([cell[0], cell[1] + i]);
+        }
+        if (!checkArray(tempLeft)) {
+          tempLeft.length = 0;
+        } else {
+          arrayOfArrays.push([...tempLeft]);
+        }
+        if (!checkArray(tempRight)) {
+          tempRight.length = 0;
+        } else {
+          arrayOfArrays.push([...tempRight]);
+        }
+        if (!checkArray(tempUp)) {
+          tempUp.length = 0;
+        } else {
+          arrayOfArrays.push([...tempUp]);
+        }
+        if (!checkArray(tempDown)) {
+          tempDown.length = 0;
+        } else {
+          arrayOfArrays.push([...tempDown]);
+        }
+      };
+
+      const checkArray = (array) => {
+        if (
+          array.some((element) => {
+            return (
+              element[0] < 0 ||
+              element[0] > 9 ||
+              element[1] < 0 ||
+              element[1] > 9
+            );
+          })
+        ) {
+          return false;
+        }
+        if (
+          array.filter((element) => {
+            return board.visited.some(
+              (pair) => pair[0] === element[0] && pair[1] === element[1]
+            );
+          }).length !== 0
+        ) {
+          return false;
+        }
+        return true;
+      };
+
+      const gridCells = board.createGrid();
+      const filteredCells = gridCells.filter((element) => {
+        return !board.visited.some(
+          (pair) => pair[0] === element[0] && pair[1] === element[1]
+        );
+      });
+
+      sizes.forEach((size) => {
+        filteredCells.forEach((cell) =>
+          checkDirections(cell, arrayOfArrays, size)
+        );
+      });
+
+      const weightedCells = [];
+
+      filteredCells.forEach((cell) => {
+        const cellWeight = arrayOfArrays
+          .filter((array) => array[0][0] === cell[0] && array[0][1] === cell[1])
+          .reduce((totalWeight, array) => totalWeight + array.length, 0);
+
+        weightedCells.push({
+          x: cell[0],
+          y: cell[1],
+          weight: cellWeight + 1,
+        });
+      });
+
+      const sortByWeight = weightedCells.sort((a, b) => b.weight - a.weight);
+      const highestWeight = sortByWeight.filter(
+        (cell) => cell.weight == sortByWeight[0].weight
+      );
+      return highestWeight[Math.floor(Math.random() * highestWeight.length)];
     },
 
-    commitAttack(board, input = this.searchPattern(board)) {
+    commitAttack(board, input = this.probabilityDensitySearch(board)) {
       //ATTACK
       this.nextTarget = this.nextTarget.filter((element) => {
         return !board.visited.some(
@@ -367,7 +489,7 @@ export const Player = (type) => {
 
       let coords = input;
 
-      const excluded = this.excludeCells(coords, board);
+      /* const excluded = this.excludeCells(coords, board);
       const excludedAndVisited = [...board.visited, ...excluded];
       while (
         excludedAndVisited.some(
@@ -375,7 +497,7 @@ export const Player = (type) => {
         )
       ) {
         coords = this.calcTargetCoords(board);
-      }
+      } */
 
       if (this.nextTarget.length !== 0) {
         coords = this.nextTarget.splice(
