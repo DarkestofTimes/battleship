@@ -335,7 +335,7 @@ export const RenderGame = (game) => {
             game.newGame(this.shipsOnGrid);
             setTimeout(() => {
               this.changeScreen();
-            }, 1000);
+            }, 2000);
           }
         }
       };
@@ -445,7 +445,7 @@ export const RenderGame = (game) => {
             game.newGame(this.shipsOnGrid);
             setTimeout(() => {
               this.changeScreen();
-            }, 1000);
+            }, 2000);
           }
         }
       };
