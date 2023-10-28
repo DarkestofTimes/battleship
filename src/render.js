@@ -37,6 +37,64 @@ export const RenderGame = (game) => {
 
       return false;
     },
+    createShip(item) {
+      const ship = document.createElement("div");
+      ship.classList.add(`ship${item.size}`, "ship");
+      if (item.axis !== null) {
+        ship.classList.add(`${item.axis ? "horizontal" : "vertical"}`);
+      }
+
+      const createBattery = () => {
+        const battery = document.createElement("div");
+        battery.classList.add("battery");
+        for (let i = 1; i <= 3; i++) {
+          const gun = document.createElement("div");
+          gun.classList.add("gun");
+          battery.appendChild(gun);
+        }
+        const turret = document.createElement("div");
+        turret.classList.add("turret");
+        battery.appendChild(turret);
+        return battery;
+      };
+
+      const createMissiles = () => {
+        const missileRack = document.createElement("div");
+        missileRack.classList.add("missileRack");
+        for (let i = 1; i <= 6; i++) {
+          const missile = document.createElement("div");
+          missile.classList.add("missile");
+          missileRack.appendChild(missile);
+        }
+        return missileRack;
+      };
+
+      for (let i = 1; i <= item.size; i++) {
+        let battery = createBattery();
+
+        if (item.size == 4 && i == 3) {
+          battery = document.createElement("div");
+          battery.classList.add("bridge");
+        }
+        if (item.size == 3 && i == 2) {
+          battery = document.createElement("div");
+          battery.classList.add("bridge");
+        }
+        if (item.size == 2) {
+          battery = createMissiles();
+        }
+        if (item.size == 2 && i == 2) {
+          battery = document.createElement("div");
+          battery.classList.add("bridge");
+        }
+        ship.appendChild(battery);
+      }
+
+      if (item.isSunk == true) {
+        ship.classList.add("sunk");
+      }
+      return ship;
+    },
     clearGrids() {
       const grids = document.querySelectorAll(".grid");
       for (const grid of grids) {
@@ -53,12 +111,8 @@ export const RenderGame = (game) => {
             child.getAttribute("data-x") == item.x[0] &&
             child.getAttribute("data-y") == item.y[0]
         );
-        const ship = document.createElement("div");
-        ship.classList.add(`ship${item.size}`, "ship");
-        ship.classList.add(`${item.axis ? "horizontal" : "vertical"}`);
-        if (item.isSunk == true) {
-          ship.classList.add("sunk");
-        }
+        const ship = this.createShip(item);
+
         if (cell.children.length === 0) {
           cell.appendChild(ship);
         }
@@ -107,26 +161,28 @@ export const RenderGame = (game) => {
       const ships = this.shipsToPlace;
 
       const flipHandler = (ev) => {
-        if (this.isTouchDevice() && !this.selected) {
-          this.selected = true;
-          return;
-        }
-
-        if (this.isTouchDevice() && this.selected) {
-          if (ev.target.style.transform == "rotate(90deg)") {
-            ev.target.setAttribute("data-axis", "true");
-            ev.target.style.transform = "none";
-          } else {
-            ev.target.setAttribute("data-axis", "false");
-            ev.target.style.transform = "rotate(90deg)";
+        if (ev.target.classList.contains("shipCreate")) {
+          if (this.isTouchDevice() && !this.selected) {
+            this.selected = true;
+            return;
           }
-        } else if (!this.isTouchDevice()) {
-          if (ev.target.style.transform == "rotate(90deg)") {
-            ev.target.setAttribute("data-axis", "true");
-            ev.target.style.transform = "none";
-          } else {
-            ev.target.setAttribute("data-axis", "false");
-            ev.target.style.transform = "rotate(90deg)";
+
+          if (this.isTouchDevice() && this.selected) {
+            if (ev.target.style.transform == "rotate(90deg)") {
+              ev.target.setAttribute("data-axis", "true");
+              ev.target.style.transform = "none";
+            } else {
+              ev.target.setAttribute("data-axis", "false");
+              ev.target.style.transform = "rotate(90deg)";
+            }
+          } else if (!this.isTouchDevice()) {
+            if (ev.target.style.transform == "rotate(90deg)") {
+              ev.target.setAttribute("data-axis", "true");
+              ev.target.style.transform = "none";
+            } else {
+              ev.target.setAttribute("data-axis", "false");
+              ev.target.style.transform = "rotate(90deg)";
+            }
           }
         }
       };
@@ -142,10 +198,11 @@ export const RenderGame = (game) => {
     createShipsToPlace() {
       const sizes = [4, 3, 3, 2, 2, 2];
       while (this.shipsToPlace.length < 6) {
-        const ship = document.createElement("div");
         const size = sizes.shift();
+        const ship = this.createShip({ size: size, axis: null });
         ship.setAttribute("data-size", size);
         ship.setAttribute("data-axis", true);
+        ship.classList.remove("ship");
         ship.classList.add("shipCreate", `ship${size}`);
         ship.setAttribute("draggable", true);
         this.shipsToPlace.push(ship);

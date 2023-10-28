@@ -295,84 +295,6 @@ export const Player = (type) => {
       const coords = filteredCoords[random];
       return { x: coords[0], y: coords[1] };
     },
-    /* searchPattern(board) {
-      const tempX = [];
-      const tempY = [];
-      const arrayOfArrays = [];
-      const grid = board.createGrid();
-      const filteredCoords = grid.filter((element) => {
-        return !board.visited.some(
-          (pair) => pair[0] === element[0] && pair[1] === element[1]
-        );
-      });
-      const alive = board.occupied.filter((ship) => {
-        return ship.isSunk === false;
-      });
-      const biggest = alive.sort((a, b) => a.size - b.size)[0].size;
-
-      const coordsByY = [...filteredCoords].sort((a, b) => a[1] - b[1]);
-
-      function processArray(arr, tempArr, arrayOfArrays) {
-        for (let i = 0; i < arr.length; i++) {
-          const current = arr[i];
-          const previous = i > 0 ? arr[i - 1] : arr[i];
-          const next = i < arr.length - 1 ? arr[i + 1] : arr[i];
-
-          if (
-            (current[1] === previous[1] && current[0] === previous[0]) ||
-            (current[1] === previous[1] && current[0] === previous[0] + 1) ||
-            (previous[0] === 9 && current[0] === 0)
-          ) {
-            tempArr.push([current[0], current[1]]);
-          } else if (
-            (current[1] === previous[1] + 1 && current[0] === previous[0]) ||
-            (previous[1] === 9 && current[1] === 0)
-          ) {
-            tempArr.push([current[0], current[1]]);
-          }
-
-          if (
-            tempArr.length == size ||
-            ((current[0] !== next[0] - 1 || current[1] !== next[1]) &&
-              current[1] === previous[1] &&
-              current[0] === previous[0] + 1)
-          ) {
-            arrayOfArrays.push([...tempArr]);
-            tempArr.length = 0;
-          } else if (
-            tempArr.length == size ||
-            ((current[0] !== next[0] || current[1] !== next[1] - 1) &&
-              current[1] === previous[1] + 1 &&
-              current[0] === previous[0])
-          ) {
-            arrayOfArrays.push([...tempArr]);
-            tempArr.length = 0;
-          }
-        }
-
-      processArray(coordsByY, tempY, arrayOfArrays);
-      processArray(filteredCoords, tempX, arrayOfArrays);
-
-      const biggerThanBiggest = arrayOfArrays.filter(
-        (array) => array.length >= biggest
-      );
-
-      const targetArrays = biggerThanBiggest.sort(
-        (a, b) => b.length - a.length
-      );
-      if (targetArrays.length !== 0) {
-        if (biggest <= 3) {
-          const random = Math.floor(Math.random() * targetArrays.length);
-          const targetCoords =
-            targetArrays[random][
-              Math.floor(targetArrays[random].length / 2 - 1)
-            ];
-          return { x: targetCoords[0], y: targetCoords[1] };
-        }
-      } else {
-        return false;
-      }
-    }, */
     probabilityDensitySearch(board) {
       const arrayOfArrays = [];
       const alive = board.occupied.filter((ship) => {
@@ -452,9 +374,9 @@ export const Player = (type) => {
         );
       });
 
-      sizes.forEach((size) => {
+      alive.forEach((ship) => {
         filteredCells.forEach((cell) =>
-          checkDirections(cell, arrayOfArrays, size)
+          checkDirections(cell, arrayOfArrays, ship.size)
         );
       });
 
