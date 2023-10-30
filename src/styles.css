@@ -472,113 +472,101 @@ footer {
   position: relative;
   grid-row: 1;
 }
-.computerFleet > * {
-  transform: scale(0.3);
-}
-
-.computerFleet .battleship,
-.computerFleet .cruiser,
-.computerFleet .destroyer {
-  transform: scaleX(-1);
+.computerFleet > span {
+  scale: 0.3;
 }
 
 .computerFleet .battleship {
   width: clamp(10vh, 10vw, 10vw);
-  height: clamp(2.2vh, 2.2vw, 2.2vw);
+  height: clamp(1.7vh, 1.7vw, 1.7vw);
   top: 0%;
   left: 50%;
-  translate: -50%;
 }
 .computerFleet .cruiser {
   width: clamp(7vh, 7vw, 7vw);
-  height: clamp(1.4vh, 1.4vw, 1.4vw);
+  height: clamp(1.2vh, 1.2vw, 1.2vw);
   top: 15%;
   left: 40%;
-  translate: -50%;
 }
 .computerFleet .cruiser:nth-of-type(2) {
   top: 15%;
   left: 60%;
-  translate: -50%;
-  transform: scaleX(-1);
 }
 .computerFleet .destroyer {
   width: clamp(4.4vh, 4.4vw, 4.4vw);
-  height: clamp(1.3vh, 1.3vw, 1.3vw);
+  height: clamp(0.9vh, 0.9vw, 0.9vw);
 }
-.computerFleet .destroyer:nth-child(4) {
+.computerFleet .destroyer:nth-of-type(4) {
   top: 27%;
   left: 33%;
-  translate: -50%;
+}
+.computerFleet .destroyer:nth-of-type(5) {
+  top: 30%;
+  left: 55%;
+}
+.computerFleet .destroyer:nth-of-type(6) {
+  top: 25%;
+  left: 67%;
 }
 .computerFleet .BGGun {
   z-index: 5;
 }
-
-.computerFleet .destroyer:nth-child(5) {
-  top: 30%;
-  left: 55%;
-  translate: -50%;
-}
-.computerFleet .destroyer:nth-child(6) {
-  top: 25%;
-  left: 67%;
-  translate: -50%;
-}
-
 .battleship {
   position: absolute;
   z-index: 3;
   width: clamp(35vh, 35vw, 35vw);
-  height: clamp(6.5vh, 6.5vw, 6.5vw);
+  height: clamp(5vh, 5vw, 5vw);
   top: 33%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-100vw);
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: 2fr 3fr;
+  transition: transform 2s ease-out;
 }
 .cruiser {
   position: absolute;
   z-index: 2;
   width: clamp(18vh, 18vw, 18vw);
-  height: clamp(4.2vh, 4.2vw, 4.2vw);
+  height: clamp(3.2vh, 3.2vw, 3.2vw);
   top: 23%;
   left: 22%;
-  transform: translateX(-50%);
+  transform: translateX(-100vw);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: 2fr 3fr;
+  transition: transform 2s ease-out;
 }
 .cruiser:nth-of-type(2) {
   left: 78%;
-  transform: translateX(-50%);
 }
-
 .destroyer {
   z-index: 1;
   position: absolute;
   width: clamp(10vh, 10vw, 10vw);
-  height: clamp(2.8vh, 2.8vw, 2.8vw);
-  transform: translateX(-50%);
+  height: clamp(2vh, 2vw, 2vw);
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: 2fr 3fr;
+  transition: transform 2s ease;
+  transform: translateX(-100vw);
 }
-.playerFleet .destroyer:nth-child(4) {
+
+.playerFleet .destroyer:nth-of-type(4) {
   top: 59%;
   left: 90%;
-  transform: translateX(-50%);
 }
-.playerFleet .destroyer:nth-child(5) {
+.playerFleet .destroyer:nth-of-type(5) {
   top: 63%;
   left: 10%;
-  transform: translateX(-50%);
 }
-.playerFleet .destroyer:nth-child(6) {
+.playerFleet .destroyer:nth-of-type(6) {
   top: 5%;
   left: 90%;
-  transform: translateX(-50%);
+}
+
+.moveIn {
+  animation: fleetAsync 10s linear infinite, moveIn 2s ease-out 1;
 }
 
 .body {
@@ -590,7 +578,6 @@ footer {
   height: 100%;
   display: grid;
   grid-template-columns: 1fr 6fr 2fr;
-  overflow: hidden;
 }
 
 .end {
@@ -682,12 +669,74 @@ footer {
   border-radius: 50%;
   transition: transform 1s ease;
 }
-.BGMissile:nth-child(2) {
+.BGMissile::after {
+  opacity: 0;
+  position: absolute;
+  content: "";
+  width: 100%;
+  height: 300%;
+  background: radial-gradient(black 20%, yellow 60%);
+  border-radius: 50%;
+  left: -70%;
+}
+.BGMissile::before {
+  content: "";
+  position: absolute;
+  opacity: 0;
+  width: 30%;
+  height: 500%;
+  border-radius: 50%;
+  background-color: black;
+}
+
+.animateMissile.BGMissile::after {
+  opacity: 1;
+}
+.animateMissile.BGMissile::before {
+  animation: missileSmoke 2s linear;
+}
+.animateMissile {
+  animation: launchMissile 2s linear;
+}
+.BGMissile:nth-of-type(2) {
   left: 20%;
 }
-.BGMissile:nth-child(3) {
+.BGMissile:nth-of-type(3) {
   left: 40%;
 }
+
+@keyframes missileSmoke {
+  0% {
+    transform: scale(3);
+    opacity: 1;
+  }
+  30% {
+    transform: scale(3) translateX(-100%);
+  }
+  70% {
+    transform: scale(3) translateY(-350%) translateX(-2240%);
+  }
+  90% {
+    opacity: 0;
+  }
+  100% {
+    transform: scale(5) translateY(-400%) translateX(-2350%);
+    opacity: 0;
+  }
+}
+
+@keyframes launchMissile {
+  0% {
+    transform: rotate(-90deg);
+  }
+  30% {
+    transform: rotate(-90deg) translateX(200%);
+  }
+  100% {
+    transform: rotate(-90deg) translateX(4000%);
+  }
+}
+
 .armMissiles {
   transform: rotate(-90deg);
 }
@@ -695,14 +744,13 @@ footer {
 .BGBattery {
   position: relative;
 }
-.BGBattery:first-child {
+.BGBattery:nth-of-type(1) {
   left: -20%;
-  grid-column: 1 / 2;
 }
-.BGBattery:nth-child(3) {
+.BGBattery:nth-of-type(3) {
   transform: scaleX(-1);
 }
-.BGBattery:nth-child(4) {
+.BGBattery:nth-of-type(4) {
   transform: scaleX(-1);
   right: 30%;
 }
@@ -730,6 +778,22 @@ footer {
   transform-origin: 100% 100%;
   transform: rotate(15deg);
   transition: transform 1s ease;
+  /*  animation-delay: 2s; */ /* clean this up */
+}
+
+.animateGun {
+  animation: gunRecoil 1s ease-out;
+}
+@keyframes gunRecoil {
+  0% {
+    translate: 0 0;
+  }
+  20% {
+    translate: 0 100%;
+  }
+  100% {
+    translate: 0 0;
+  }
 }
 
 .BGGun:nth-child(2) {
@@ -749,6 +813,374 @@ footer {
 .rotateGuns:nth-child(3) {
   transform: rotateZ(90deg) scaleX(0.7);
   left: 52%;
+}
+
+.wave {
+  position: absolute;
+  z-index: 5;
+  width: 30%;
+  height: 60%;
+  top: 79%;
+  left: 55%;
+  border-radius: 100% 50% 0 0;
+  background: linear-gradient(hsl(191, 30%, 68%) 40%, transparent 50%);
+  animation: waveRide 3s ease-in-out infinite;
+}
+.battleship .wave .trail {
+  animation: waveRide 5s ease-in-out infinite;
+  animation-delay: 2s;
+}
+.battleship:nth-of-type(2) .wave {
+  animation-delay: 1s;
+}
+.cruiser .wave .trail {
+  animation: waveRide 4s ease-in-out infinite;
+  animation-delay: 5s;
+}
+.cruiser:nth-of-type(2) .wave .trail {
+  animation-delay: 8s;
+}
+.cruiser:nth-of-type(3) .wave .trail {
+  animation-delay: 3.7s;
+}
+.cruiser:nth-of-type(4) .wave .trail {
+  animation-delay: 7s;
+}
+.destroyer .wave .trail {
+  animation-delay: 4s;
+}
+.destroyer:nth-of-type(2) .wave .trail {
+  animation-delay: 1.8s;
+}
+.destroyer:nth-of-type(3) .wave .trail {
+  animation-delay: 8.8s;
+}
+.destroyer:nth-of-type(4) .wave .trail {
+  animation-delay: 5.3s;
+}
+.destroyer:nth-of-type(5) .wave .trail {
+  animation-delay: 2.2s;
+}
+.destroyer:nth-of-type(6) .wave .trail {
+  animation-delay: 4.6s;
+}
+
+.trail {
+  position: absolute;
+  z-index: 5;
+  background: linear-gradient(-90deg, hsl(191, 30%, 68%) 40%, transparent 50%);
+  width: 200%;
+  height: 16%;
+  top: 88%;
+  left: -130%;
+  animation: trailAnimation 6s ease-in-out infinite;
+}
+
+@keyframes waveRide {
+  0% {
+    transform: translateX(-2%) scale(1.05);
+  }
+  25% {
+    transform: translateX(6%) scale(0.9);
+  }
+  50% {
+    transform: translateX(-4%) scale(1.1);
+  }
+  75% {
+    transform: translateX(4%) scale(0.9);
+  }
+  100% {
+    transform: translateX(-2%) scale(1.05);
+  }
+}
+
+@keyframes fleetAsync {
+  0% {
+    transform: translate(0%, 0%) translateX(-50%);
+  }
+  25% {
+    transform: translate(5%, 3%) translateX(-50%);
+  }
+  50% {
+    transform: translate(-5%, -2%) translateX(-50%);
+  }
+  75% {
+    transform: translate(2%, 4%) translateX(-50%);
+  }
+  100% {
+    transform: translate(0%, 0%) translateX(-50%);
+  }
+}
+@keyframes trailAnimation {
+  0% {
+    transform: translateY(0%) scale(1);
+  }
+  25% {
+    transform: translateY(10%) scale(1.1);
+  }
+  50% {
+    transform: translateY(-5%) scale(0.92);
+  }
+  75% {
+    transform: translateY(8%) scale(1.05);
+  }
+  75% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes moveIn {
+  0% {
+    transform: translateX(-100vw);
+  }
+  100% {
+    transform: translateX(-50%) translate(4%, 2%);
+  }
+}
+
+/*  EFFECTS */
+
+.hitExplosion {
+  z-index: 6;
+  position: absolute;
+  top: 50%; /* 10 - 55 */
+  left: 15%; /* 15 - 70 */
+}
+.explosion {
+  z-index: 10;
+  position: absolute;
+  background: radial-gradient(rgb(213, 220, 109) 60%, transparent 70%);
+  width: clamp(1vh, 1vw, 1vw);
+  height: clamp(1vh, 1vw, 1vw);
+  animation: hitExplosion 0.4s ease-out 1;
+  /* animation-delay: 2s; */ /* clean this up */
+  border-radius: 50%;
+  display: flex;
+  place-items: center;
+  opacity: 0; /* change to 0 */
+}
+.explInner {
+  background: radial-gradient(rgb(38, 38, 28) 30%, transparent 40%);
+  width: clamp(1vh, 1vw, 1vw);
+  height: clamp(1vh, 1vw, 1vw);
+}
+
+.explSmoke {
+  position: absolute;
+  opacity: 0; /* change to 0 */
+  z-index: 2;
+  width: clamp(3vh, 3vw, 3vw);
+  height: clamp(3vh, 3vw, 3vw);
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.621);
+  animation: explSmoke 3s ease-out;
+  /* animation-delay: 2s; */ /* clean this up */
+  transform-origin: -50% -50%;
+  translate: -35% -35%;
+}
+
+@keyframes explSmoke {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.8) translateY(-200%) translateX(-300%);
+  }
+}
+
+@keyframes hitExplosion {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(6);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(8);
+    opacity: 0;
+  }
+}
+
+.burning {
+  position: absolute;
+  z-index: 0;
+  width: clamp(1vh, 1vw, 1vw);
+  height: clamp(0.7vh, 0.7vw, 0.7vw);
+  background: linear-gradient(45deg, red 60%, transparent);
+  top: -45%;
+  left: 18%; /* 18 - 75 */
+  border-radius: 50% 0% 50% 50%;
+  display: flex;
+  place-items: center;
+  animation: burning 3s linear infinite;
+  opacity: 0.8;
+}
+.brnInner {
+  position: absolute;
+  left: 10%;
+
+  width: 60%;
+  height: 80%;
+  background: linear-gradient(45deg, rgb(212, 174, 50) 60%, transparent);
+  border-radius: 50% 0% 50% 50%;
+}
+.battleship .burning {
+  scale: 1.2;
+  top: -25%;
+}
+.destroyer .burning {
+  scale: 0.8;
+  top: -70%;
+}
+
+@keyframes burning {
+  0% {
+    transform: skewX(30deg) scale(4) rotate(-45deg);
+  }
+  25% {
+    transform: scale(4.4) skewX(-8deg) rotate(-45deg);
+  }
+  50% {
+    transform: scale(3.5) skewX(30deg) rotate(-45deg);
+  }
+  75% {
+    transform: scale(4.5) skewX(-12deg) rotate(-45deg);
+  }
+  100% {
+    transform: scale(4) skewX(30deg) rotate(-45deg);
+  }
+}
+
+.hole {
+  position: absolute;
+  z-index: 5;
+  top: 55% /* 10 - 55*/;
+  left: 45% /* 12 - 70*/;
+  border-radius: 50%;
+  width: clamp(1.5vh, 1.5vw, 1.5vw);
+  height: clamp(1.5vh, 1.5vw, 1.5vw);
+  background: radial-gradient(black 10%, rgba(0, 0, 0, 0.071) 100%);
+}
+
+.splash {
+  opacity: 0;
+  position: absolute;
+  top: 30%; /* -50 - 30% */
+  left: 43%; /*0 -  100 */
+  z-index: 2;
+  width: clamp(2vh, 2vw, 2vw);
+  height: clamp(8vh, 8vw, 8vw);
+  background: linear-gradient(45deg, hsl(191, 30%, 68%) 15%, transparent 20%);
+  transform: rotate(-45deg);
+  transform-origin: 0 100%;
+  animation: splash 1s ease-out 1;
+}
+.splashInner {
+  opacity: 0.9;
+  position: absolute;
+  z-index: 1;
+  width: clamp(2vh, 2vw, 2vw);
+  height: clamp(2vh, 2vw, 2vw);
+  background: radial-gradient(hsl(192, 18%, 48%), hsl(191, 30%, 68%));
+  border-radius: 50%;
+  transform: rotate3d(1, 1, 0, 55deg);
+  top: 87%;
+  left: -45%;
+}
+
+@keyframes splash {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(2) rotate(-45deg);
+    opacity: 0;
+  }
+}
+
+.gunFire {
+  position: absolute;
+  z-index: 5;
+  width: 40%;
+  height: 100%;
+  rotate: 90deg;
+  left: 54%;
+  top: -170%;
+}
+.gunFire:nth-of-type(2) {
+  left: 64%;
+}
+.gunFire:nth-of-type(3) {
+  left: 74%;
+}
+.gunFireCone {
+  opacity: 0; /* change to 0 */
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(black 20%, yellow 30%);
+  border-radius: 50%;
+  transform-origin: 100%;
+  /* animation-delay: 2s;  */ /* clean this up */
+}
+.animateFireCone {
+  animation: FireCone 0.3s ease-out;
+}
+
+.gunFireSmoke {
+  position: absolute;
+  opacity: 0; /* change to 0 */
+  z-index: 2;
+  width: 40%;
+  height: 40%;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.621);
+  left: 70%;
+  top: 30%;
+  /*  animation-delay: 2s; */ /* clean this up */
+}
+.animateFireSmoke {
+  animation: gunSmoke 2s ease-out;
+}
+
+.BGBattery:nth-of-type(3) .gunFire {
+  transform: scaleY(-1);
+}
+.BGBattery:nth-of-type(4) .gunFire {
+  transform: scaleY(-1);
+}
+
+@keyframes gunSmoke {
+  0% {
+    opacity: 1;
+  }
+  25% {
+    opacity: 1;
+    transform: scale(2) translateY(0) translateX(-50%);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3) translateY(200%) translateX(-100%);
+  }
+}
+
+@keyframes FireCone {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2);
+  }
 }
 
 /* UTIL */
@@ -782,5 +1214,3 @@ footer {
 .selected {
   background-color: cadetblue;
 }
-
-/* prettier ships */
