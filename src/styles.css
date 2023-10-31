@@ -1152,6 +1152,57 @@ footer {
   background: linear-gradient(45deg, rgb(212, 174, 50) 60%, transparent);
   border-radius: 50% 0% 50% 50%;
 }
+.burning::before {
+  opacity: 0;
+  position: absolute;
+  content: "";
+  width: 50%;
+  height: 50%;
+  background-color: rgba(0, 0, 0, 0.596);
+  animation: burnSmoke 1.2s ease-out infinite;
+  border-radius: 50%;
+  rotate: 45deg;
+  transform-origin: 100% 100%;
+}
+.burning::after {
+  opacity: 0;
+  position: absolute;
+  content: "";
+  width: 50%;
+  height: 50%;
+  background-color: rgba(0, 0, 0, 0.596);
+  animation: burnSmoke 1.2s ease-out infinite;
+  animation-delay: 0.3s;
+  border-radius: 50%;
+  rotate: 45deg;
+  transform-origin: 100% 100%;
+}
+.brnInner::before {
+  opacity: 0;
+  position: absolute;
+  content: "";
+  width: 75%;
+  height: 75%;
+  background-color: rgba(0, 0, 0, 0.596);
+  animation: burnSmoke 1.2s ease-out infinite;
+  animation-delay: 0.6s;
+  border-radius: 50%;
+  rotate: 45deg;
+  transform-origin: 100% 100%;
+}
+.brnInner::after {
+  opacity: 0;
+  position: absolute;
+  content: "";
+  width: 75%;
+  height: 75%;
+  background-color: rgba(0, 0, 0, 0.596);
+  animation: burnSmoke 1.2s ease-out infinite;
+  animation-delay: 0.9s;
+  border-radius: 50%;
+  rotate: 45deg;
+  transform-origin: 100% 100%;
+}
 .playerFleet .battleship .burning {
   scale: 1.2;
   top: -25%;
@@ -1176,6 +1227,16 @@ footer {
   }
   100% {
     transform: scale(4) skewX(30deg) rotate(-45deg);
+  }
+}
+@keyframes burnSmoke {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.8) translateY(-100%) translateX(-70%);
   }
 }
 
