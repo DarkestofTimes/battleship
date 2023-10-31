@@ -129,7 +129,7 @@ export const RenderGame = (game) => {
         cell.style.backgroundColor = "hsla(0, 0.00%, 0.00%, 0.41)";
       });
     },
-    renderHit(array, grid) {
+    renderHit(array, array2, grid) {
       array.forEach((item) => {
         const gridArray = Array.from(grid.children);
         const cell = gridArray.find(
@@ -140,6 +140,13 @@ export const RenderGame = (game) => {
         cell.classList.add("cellHit");
         cell.style.backgroundColor = "hsla(0, 88.40%, 37.30%, 0.85)";
         cell.style.border = "3px solid hsla(0, 0.00%, 0.00%, 0.77)";
+        if (
+          item == array[array.length - 1] &&
+          item[0] == array2[array2.length - 1][0] &&
+          item[1] == array2[array2.length - 1][1]
+        ) {
+          cell.style.border = "3px solid crimson";
+        }
       });
     },
     renderAttacks(array, grid) {
@@ -535,8 +542,8 @@ export const RenderGame = (game) => {
       this.renderMiss(computerBoard.visited, computerGrid);
       this.renderAttacks(computerBoard.attacks, computerGrid);
       this.renderAttacks(playerBoard.attacks, playerGrid);
-      this.renderHit(playerBoard.hits, playerGrid);
-      this.renderHit(computerBoard.hits, computerGrid);
+      this.renderHit(playerBoard.hits, playerBoard.attacks, playerGrid);
+      this.renderHit(computerBoard.hits, computerBoard.attacks, computerGrid);
       this.renderShips(playerBoard.occupied, playerGrid);
       this.renderShips(computerArray, computerGrid);
       this.announceTurn(bool);
