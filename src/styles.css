@@ -445,11 +445,17 @@ footer {
 
 /* BACKGROUND */
 
+/* background util */
+
+.moveIn {
+  animation: fleetAsync 10s linear infinite, moveIn 2s ease-out 1;
+}
+
 .BGSink {
-  animation: sinkShip 6s linear;
+  animation: sinkShip 10s linear;
 }
 .computerFleet .BGSink {
-  animation: CompSinkShip 10s ease-in;
+  animation: CompSinkShip 15s ease-in;
 }
 .BGSink .wave,
 .BGSink .trail {
@@ -461,12 +467,23 @@ footer {
   display: none;
 }
 
+.detonating .hitExplosion {
+  scale: 1.8;
+}
+.computerFleet .detonating .hitExplosion {
+  scale: 0.7;
+}
+
+.computerFleet .burning {
+  scale: 0.3;
+}
+
 @keyframes sinkShip {
   0% {
     transform: translateX(-50%);
   }
   100% {
-    transform: translateX(-100vw);
+    transform: translateX(-150vw);
   }
 }
 @keyframes CompSinkShip {
@@ -474,7 +491,7 @@ footer {
     transform: translateX(-50%);
   }
   100% {
-    transform: translateX(-600%);
+    transform: translateX(-150vw);
   }
 }
 
@@ -485,6 +502,7 @@ footer {
   height: 100vh;
   background: linear-gradient(hsl(214, 66%, 77%) 20%, rgb(89, 89, 122));
   pointer-events: none;
+  overflow: hidden;
 }
 .sea {
   height: 50vh;
@@ -496,14 +514,74 @@ footer {
   display: grid;
   grid-template-rows: 1fr 1fr;
 }
-.ice {
+.iceBerg {
   position: absolute;
-  z-index: 1;
+  z-index: -1;
   width: clamp(10vh, 10vw, 10vw);
   height: clamp(8vh, 8vw, 8vw);
   background: linear-gradient(white, rgb(194, 194, 194));
   top: 50%;
+  transform: translateY(-100%) translateX(-100%);
   animation: iceFloatBy 18s linear infinite;
+  animation-play-state: paused;
+}
+.iceBergOne {
+  /*   width: clamp(12vh, 12vw, 12vw);
+  height: clamp(9vh, 9vw, 9vw); */
+  border-left: clamp(5vh, 5vw, 5vw) solid transparent;
+  border-right: clamp(7vh, 7vw, 7vw) solid transparent;
+  border-bottom: clamp(10vh, 10vw, 10vw) solid rgb(225, 225, 225);
+}
+.iceBergTwo {
+  /*   width: clamp(9vh, 9vw, 9vw);
+  height: clamp(15vh, 15vw, 15vw); */
+  animation-delay: 2s;
+  border-left: clamp(8vh, 8vw, 8vw) solid transparent;
+  border-right: clamp(7vh, 7vw, 7vw) solid transparent;
+  border-bottom: clamp(6vh, 6vw, 6vw) solid rgb(225, 225, 225);
+}
+.iceBergThree {
+  /*   width: clamp(12vh, 12vw, 12vw);
+  height: clamp(11vh, 11vw, 11vw); */
+  animation-delay: 2.5s;
+  border-left: clamp(9vh, 9vw, 9vw) solid transparent;
+  border-right: clamp(6vh, 6vw, 6vw) solid transparent;
+  border-bottom: clamp(9vh, 9vw, 9vw) solid rgb(225, 225, 225);
+}
+.iceBergFour {
+  /*   width: clamp(8vh, 8vw, 8vw);
+  height: clamp(7vh, 7vw, 7vw); */
+  animation-delay: 10s;
+  border-left: clamp(6vh, 6vw, 6vw) solid transparent;
+  border-right: clamp(6vh, 6vw, 6vw) solid transparent;
+  border-bottom: clamp(8.2vh, 8.2vw, 8.2vw) solid rgb(225, 225, 225);
+}
+.iceBergFive {
+  /* width: clamp(12vh, 12vw, 12vw);
+  height: clamp(12vh, 12vw, 12vw); */
+  animation-delay: 11s;
+  border-left: clamp(12vh, 12vw, 12vw) solid transparent;
+  border-right: clamp(12vh, 12vw, 12vw) solid transparent;
+  border-bottom: clamp(10vh, 10vw, 10vw) solid rgb(225, 225, 225);
+}
+.iceBergSix {
+  /*   width: clamp(8vh, 8vw, 8vw);
+  height: clamp(8vh, 8vw, 8vw); */
+  animation-delay: 12s;
+  border-left: clamp(5vh, 5vw, 5vw) solid transparent;
+  border-right: clamp(12vh, 12vw, 12vw) solid transparent;
+  border-bottom: clamp(15vh, 15vw, 15vw) solid rgb(225, 225, 225);
+}
+.iceBergSeven {
+  /*   width: clamp(25vh, 25vw, 25vw);
+  height: clamp(3vh, 3vw, 3vw); */
+  animation-delay: 6.5s;
+  border-left: clamp(12vh, 12vw, 12vw) solid transparent;
+  border-right: clamp(15vh, 15vw, 15vw) solid transparent;
+  border-bottom: clamp(3vh, 3vw, 3vw) solid rgb(225, 225, 225);
+}
+.animateIce {
+  animation-play-state: running;
 }
 
 @keyframes iceFloatBy {
@@ -528,6 +606,8 @@ footer {
 .computerFleet > span {
   scale: 0.3;
 }
+
+/* background ships */
 
 .computerFleet .battleship {
   width: clamp(10vh, 10vw, 10vw);
@@ -618,9 +698,7 @@ footer {
   left: 90%;
 }
 
-.moveIn {
-  animation: fleetAsync 10s linear infinite, moveIn 2s ease-out 1;
-}
+/* background parts */
 
 .body {
   position: relative;
@@ -1087,16 +1165,13 @@ footer {
   background: linear-gradient(45deg, rgb(212, 174, 50) 60%, transparent);
   border-radius: 50% 0% 50% 50%;
 }
-.battleship .burning {
+.playerFleet .battleship .burning {
   scale: 1.2;
   top: -25%;
 }
-.destroyer .burning {
+.playerFleet .destroyer .burning {
   scale: 0.8;
   top: -70%;
-}
-.computerFleet .burning {
-  scale: 0.3;
 }
 
 @keyframes burning {
@@ -1120,12 +1195,12 @@ footer {
 .hole {
   position: absolute;
   z-index: 5;
-  top: 55% /* 10 - 55*/;
+  top: 55% /* 0 - 20*/;
   left: 45% /* 12 - 70*/;
   border-radius: 50%;
   width: clamp(1.5vh, 1.5vw, 1.5vw);
   height: clamp(1.5vh, 1.5vw, 1.5vw);
-  background: radial-gradient(black 10%, rgba(0, 0, 0, 0.071) 100%);
+  background: radial-gradient(black 10%, rgba(0, 0, 0, 0.071) 50%);
 }
 .computerFleet .hole {
   scale: 0.3;

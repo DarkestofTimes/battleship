@@ -1273,6 +1273,7 @@ const RenderGame = (game) => {
       const missileRacks = document.querySelectorAll(".BGMissileRack");
       const burnings = document.querySelectorAll(".burning");
       const holes = document.querySelectorAll(".hole");
+      const iceBergs = document.querySelectorAll(".iceBerg");
 
       const startEventHandler = () => {
         ships.forEach((ship) => ship.classList.add("moveIn"));
@@ -1285,6 +1286,7 @@ const RenderGame = (game) => {
               .querySelectorAll(".BGMissile")
               .forEach((missile) => missile.classList.add("armMissiles"));
           });
+          iceBergs.forEach((iceberg) => iceberg.classList.add("animateIce"));
         }, 2000);
       };
 
@@ -1302,6 +1304,7 @@ const RenderGame = (game) => {
         missiles.forEach((missile) => missile.classList.remove("armMissiles"));
         burnings.forEach((burning) => burning.remove());
         holes.forEach((hole) => hole.remove());
+        iceBergs.forEach((iceBerg) => iceBerg.classList.remove("animateIce"));
       };
 
       const config = { attributes: true, attributeFilter: ["class"] };
@@ -1323,7 +1326,29 @@ const RenderGame = (game) => {
 
       observer.observe(creationScreen, config);
     },
+    createBurning() {
+      const burning = document.createElement("span");
+      burning.classList.add("burning");
+      const innerBurn = document.createElement("span");
+      innerBurn.classList.add("brnInner");
+      burning.appendChild(innerBurn);
 
+      return burning;
+    },
+    createExplosion() {
+      const hitExplosion = document.createElement("span");
+      hitExplosion.classList.add("hitExplosion");
+      const explSmoke = document.createElement("span");
+      explSmoke.classList.add("explSmoke");
+      hitExplosion.appendChild(explSmoke);
+      const explosion = document.createElement("span");
+      explosion.classList.add("explosion");
+      hitExplosion.appendChild(explosion);
+      const inner = document.createElement("span");
+      inner.classList.add("explInner");
+      explosion.appendChild(inner);
+      return hitExplosion;
+    },
     splashingMisses(fleet) {
       const playerActiveGuns = document.querySelectorAll(
         ".playerFleet .battleship:not(.BGSink) .BGGun,.playerFleet .cruiser:not(.BGSink) .BGGun"
@@ -1418,6 +1443,49 @@ const RenderGame = (game) => {
         });
       });
     },
+    BGSink(ship) {
+      const burns = ship.querySelectorAll(".burning");
+      const holes = ship.querySelectorAll(".hole");
+      if (burns.length > holes.length) {
+        ship.classList.add("engulfed");
+        for (let i = 1; i < 6; i++) {
+          const burning = this.createBurning();
+          const randomLeft = Math.floor(Math.random() * (70 - 15)) + 15;
+          burning.style.left = randomLeft + "%";
+          ship.querySelector(".body").appendChild(burning);
+        }
+        setTimeout(() => {
+          ship.classList.remove("engulfed");
+        }, 5000);
+      } else {
+        ship.classList.add("detonating");
+        for (let i = 1; i < 9; i++) {
+          setTimeout(() => {
+            const explosion = this.createExplosion();
+            const randomLeft = Math.floor(Math.random() * (70 - 15)) + 15;
+            explosion.style.left = randomLeft + "%";
+            ship.appendChild(explosion);
+          }, Math.floor(Math.random() * 600));
+          setTimeout(() => {
+            const parts = ship.querySelectorAll(
+              ".BGBridge, .BGBattery, .BGMissileRack"
+            );
+            parts.forEach((part) => part.classList.add("destroyed"));
+          }, 400);
+        }
+        setTimeout(() => {
+          const explosions = ship.querySelectorAll(".hitExplosion");
+          explosions.forEach((explosion) => explosion.remove());
+        }, 3000);
+        setTimeout(() => {
+          ship.classList.remove("detonating");
+        }, 5000);
+      }
+      setTimeout(() => {
+        ship.classList.add("BGSink");
+        ship.classList.remove("moveIn");
+      }, 2500);
+    },
     BGShots() {
       const computerGrid = document.querySelector(".computerGrid");
       const playerGrid = document.querySelector(".playerGrid");
@@ -1444,20 +1512,10 @@ const RenderGame = (game) => {
         const shipId = theRightShip[0].id;
         const ship = fleet.querySelector(`[data-id="${shipId}"]`);
         const randomTop = Math.floor(Math.random() * (55 - 10)) + 10;
-        const softerRandomTop = Math.floor(Math.random() * (15 - 10)) + 10;
+        const softerRandomTop = Math.floor(Math.random() * -20);
         const randomLeft = Math.floor(Math.random() * (70 - 15)) + 15;
-        const hitExplosion = document.createElement("span");
-        hitExplosion.classList.add("hitExplosion");
-        const explSmoke = document.createElement("span");
-        explSmoke.classList.add("explSmoke");
-        hitExplosion.appendChild(explSmoke);
-        const explosion = document.createElement("span");
-        explosion.classList.add("explosion");
-        hitExplosion.appendChild(explosion);
-        const inner = document.createElement("span");
-        inner.classList.add("explInner");
-        explosion.appendChild(inner);
 
+        const hitExplosion = this.createExplosion();
         hitExplosion.style.top = randomTop + "%";
         hitExplosion.style.left = randomLeft + "%";
         ship.appendChild(hitExplosion);
@@ -1465,12 +1523,9 @@ const RenderGame = (game) => {
           hitExplosion.remove();
         }, 3300);
 
-        const burning = document.createElement("span");
-        burning.classList.add("burning");
-        const innerBurn = document.createElement("span");
-        innerBurn.classList.add("brnInner");
+        const burning = this.createBurning();
+
         burning.style.left = randomLeft + "%";
-        burning.appendChild(innerBurn);
 
         const hole = document.createElement("span");
         hole.classList.add("hole");
@@ -1479,6 +1534,9 @@ const RenderGame = (game) => {
 
         const effect = coinFlip ? burning : hole;
         ship.querySelector(".body").appendChild(effect);
+        if (theRightShip[0].isSunk) {
+          this.BGSink(ship, hitExplosion, burning);
+        }
       };
 
       const compObserver = new MutationObserver((mutationList, observer) => {
