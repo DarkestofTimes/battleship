@@ -1074,7 +1074,7 @@ const RenderGame = (game) => {
         !game.declareWinner()
       ) {
         startScreen.classList.add("slideUp");
-        gameScreen.style.display = "block";
+        gameScreen.style.display = "flex";
         setTimeout(() => {
           gameScreen.classList.add("slideFromBeneath");
           startScreen.style.display = "none";
@@ -1181,16 +1181,22 @@ const RenderGame = (game) => {
 
       if (playerBoard.classList.contains("highlight")) {
         playerBoard.classList.remove("highlight");
-        computerBoard.parentElement.classList.remove("slideFromMid");
-        playerBoard.parentElement.classList.remove("slideToMid");
+        if (window.innerWidth < 900) {
+          computerBoard.parentElement.classList.remove("slideFromMid");
+          playerBoard.parentElement.classList.remove("slideToMid");
+        }
+
         computerBoard.classList.add("highlight");
         return;
       }
       if (computerBoard.classList.contains("highlight")) {
         computerBoard.classList.remove("highlight");
         playerBoard.classList.add("highlight");
-        computerBoard.parentElement.classList.add("slideFromMid");
-        playerBoard.parentElement.classList.add("slideToMid");
+        if (window.innerWidth < 900) {
+          computerBoard.parentElement.classList.add("slideFromMid");
+          playerBoard.parentElement.classList.add("slideToMid");
+        }
+
         return;
       }
     },
@@ -1206,7 +1212,6 @@ const RenderGame = (game) => {
     },
     restartGameListener() {
       const restart = document.querySelector(".restartBtn");
-
       const restartEvHandler = () => {
         this.clearEventListeners();
         game.resetGame();
@@ -1306,6 +1311,19 @@ const RenderGame = (game) => {
         burnings.forEach((burning) => burning.remove());
         holes.forEach((hole) => hole.remove());
         iceBergs.forEach((iceBerg) => iceBerg.classList.remove("animateIce"));
+        resetGameBoard();
+      };
+
+      const resetGameBoard = () => {
+        const playerBoard = document.querySelector(".playerBoard");
+        const computerBoard = document.querySelector(".computerBoard");
+
+        playerBoard.classList.remove("highlight");
+        if (window.innerWidth < 900) {
+          computerBoard.parentElement.classList.remove("slideFromMid");
+          playerBoard.parentElement.classList.remove("slideToMid");
+        }
+        computerBoard.classList.add("highlight");
       };
 
       const config = { attributes: true, attributeFilter: ["class"] };
