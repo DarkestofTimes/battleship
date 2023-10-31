@@ -1271,8 +1271,7 @@ const RenderGame = (game) => {
       const guns = document.querySelectorAll(".BGGun");
       const missiles = document.querySelectorAll(".BGMissile");
       const missileRacks = document.querySelectorAll(".BGMissileRack");
-      const burnings = document.querySelectorAll(".burning");
-      const holes = document.querySelectorAll(".hole");
+
       const iceBergs = document.querySelectorAll(".iceBerg");
 
       const startEventHandler = () => {
@@ -1291,6 +1290,8 @@ const RenderGame = (game) => {
       };
 
       const resetEventHandler = () => {
+        const burnings = document.querySelectorAll(".burning");
+        const holes = document.querySelectorAll(".hole");
         ships.forEach((ship) => {
           ship.classList.remove("BGSink");
           ship.classList.remove("moveIn");
@@ -1454,6 +1455,12 @@ const RenderGame = (game) => {
           burning.style.left = randomLeft + "%";
           ship.querySelector(".body").appendChild(burning);
         }
+        setTimeout(() => {
+          const parts = ship.querySelectorAll(
+            ".BGBridge, .BGBattery, .BGMissileRack"
+          );
+          parts.forEach((part) => part.classList.add("destroyed"));
+        }, 800);
         setTimeout(() => {
           ship.classList.remove("engulfed");
         }, 5000);
