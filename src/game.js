@@ -6,6 +6,7 @@ export const Ship = (num, bool) => {
     axis: bool,
     x: [],
     y: [],
+    id: null,
     wasHit() {
       this.hits++;
     },
@@ -112,6 +113,7 @@ export const Board = () => {
             newShip.y.push(y + i);
           }
         }
+        newShip.id = 1 + this.occupied.length;
         this.occupied.push(newShip);
         return true;
       } else {

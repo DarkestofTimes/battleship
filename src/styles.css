@@ -445,6 +445,39 @@ footer {
 
 /* BACKGROUND */
 
+.BGSink {
+  animation: sinkShip 6s linear;
+}
+.computerFleet .BGSink {
+  animation: CompSinkShip 10s ease-in;
+}
+.BGSink .wave,
+.BGSink .trail {
+  transition: scale 5s ease-in;
+  scale: 1 0;
+}
+
+.destroyed {
+  display: none;
+}
+
+@keyframes sinkShip {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(-100vw);
+  }
+}
+@keyframes CompSinkShip {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(-600%);
+  }
+}
+
 .backgroundScreen {
   position: absolute;
   z-index: -10;
@@ -463,12 +496,32 @@ footer {
   display: grid;
   grid-template-rows: 1fr 1fr;
 }
+.ice {
+  position: absolute;
+  z-index: 1;
+  width: clamp(10vh, 10vw, 10vw);
+  height: clamp(8vh, 8vw, 8vw);
+  background: linear-gradient(white, rgb(194, 194, 194));
+  top: 50%;
+  animation: iceFloatBy 18s linear infinite;
+}
+
+@keyframes iceFloatBy {
+  0% {
+    transform: translateX(100vw) translateY(-100%);
+  }
+  100% {
+    transform: translateX(-20vw) translateY(-100%);
+  }
+}
 
 .playerFleet {
   position: relative;
+  z-index: 1;
   grid-row: 2;
 }
 .computerFleet {
+  z-index: 1;
   position: relative;
   grid-row: 1;
 }
@@ -675,6 +728,7 @@ footer {
   content: "";
   width: 100%;
   height: 300%;
+  top: -80%;
   background: radial-gradient(black 20%, yellow 60%);
   border-radius: 50%;
   left: -70%;
@@ -714,13 +768,13 @@ footer {
     transform: scale(3) translateX(-100%);
   }
   70% {
-    transform: scale(3) translateY(-350%) translateX(-2240%);
+    transform: scale(3) translateY(-350%) translateX(-14vh);
   }
   90% {
     opacity: 0;
   }
   100% {
-    transform: scale(5) translateY(-400%) translateX(-2350%);
+    transform: scale(5) translateY(-400%) translateX(-15vh);
     opacity: 0;
   }
 }
@@ -733,7 +787,7 @@ footer {
     transform: rotate(-90deg) translateX(200%);
   }
   100% {
-    transform: rotate(-90deg) translateX(4000%);
+    transform: rotate(-90deg) translateX(100vh);
   }
 }
 
@@ -873,6 +927,7 @@ footer {
   height: 16%;
   top: 88%;
   left: -130%;
+  transform-origin: 120%;
   animation: trailAnimation 6s ease-in-out infinite;
 }
 
@@ -952,7 +1007,7 @@ footer {
   background: radial-gradient(rgb(213, 220, 109) 60%, transparent 70%);
   width: clamp(1vh, 1vw, 1vw);
   height: clamp(1vh, 1vw, 1vw);
-  animation: hitExplosion 0.4s ease-out 1;
+  animation: hitExplosion 0.6s ease-out 1;
   /* animation-delay: 2s; */ /* clean this up */
   border-radius: 50%;
   display: flex;
@@ -964,7 +1019,6 @@ footer {
   width: clamp(1vh, 1vw, 1vw);
   height: clamp(1vh, 1vw, 1vw);
 }
-
 .explSmoke {
   position: absolute;
   opacity: 0; /* change to 0 */
@@ -977,6 +1031,9 @@ footer {
   /* animation-delay: 2s; */ /* clean this up */
   transform-origin: -50% -50%;
   translate: -35% -35%;
+}
+.computerFleet .hitExplosion {
+  scale: 0.3;
 }
 
 @keyframes explSmoke {
@@ -1025,7 +1082,6 @@ footer {
 .brnInner {
   position: absolute;
   left: 10%;
-
   width: 60%;
   height: 80%;
   background: linear-gradient(45deg, rgb(212, 174, 50) 60%, transparent);
@@ -1038,6 +1094,9 @@ footer {
 .destroyer .burning {
   scale: 0.8;
   top: -70%;
+}
+.computerFleet .burning {
+  scale: 0.3;
 }
 
 @keyframes burning {
@@ -1068,10 +1127,14 @@ footer {
   height: clamp(1.5vh, 1.5vw, 1.5vw);
   background: radial-gradient(black 10%, rgba(0, 0, 0, 0.071) 100%);
 }
+.computerFleet .hole {
+  scale: 0.3;
+}
 
 .splash {
   opacity: 0;
   position: absolute;
+  z-index: -1;
   top: 30%; /* -50 - 30% */
   left: 43%; /*0 -  100 */
   z-index: 2;
@@ -1098,7 +1161,7 @@ footer {
 @keyframes splash {
   0% {
     transform: scale(0) rotate(-45deg);
-    opacity: 1;
+    opacity: 0.99;
   }
 
   100% {
@@ -1169,7 +1232,7 @@ footer {
   }
   100% {
     opacity: 0;
-    transform: scale(3) translateY(200%) translateX(-100%);
+    transform: scale(3) translateY(200%) translateX(-150%);
   }
 }
 

@@ -23,6 +23,7 @@ const Ship = (num, bool) => {
     axis: bool,
     x: [],
     y: [],
+    id: null,
     wasHit() {
       this.hits++;
     },
@@ -129,6 +130,7 @@ const Board = () => {
             newShip.y.push(y + i);
           }
         }
+        newShip.id = 1 + this.occupied.length;
         this.occupied.push(newShip);
         return true;
       } else {
@@ -694,7 +696,7 @@ const RenderGame = (game) => {
             child.getAttribute("data-x") == item[0] &&
             child.getAttribute("data-y") == item[1]
         );
-        cell.textContent = "*";
+        cell.style.backgroundColor = "hsla(0, 0.00%, 0.00%, 0.41)";
       });
     },
     renderHit(array, grid) {
@@ -705,9 +707,9 @@ const RenderGame = (game) => {
             child.getAttribute("data-x") == item[0] &&
             child.getAttribute("data-y") == item[1]
         );
-        cell.style.backgroundColor = "hsla(271, 76%, 53%, 0.274)";
-        cell.style.border = "3px solid hsla(271, 76%, 53%, 0.774)";
-        cell.textContent = "X";
+        cell.classList.add("cellHit");
+        cell.style.backgroundColor = "hsla(0, 88.40%, 37.30%, 0.85)";
+        cell.style.border = "3px solid hsla(0, 0.00%, 0.00%, 0.77)";
       });
     },
     renderAttacks(array, grid) {
@@ -718,10 +720,10 @@ const RenderGame = (game) => {
             child.getAttribute("data-x") == item[0] &&
             child.getAttribute("data-y") == item[1]
         );
-        cell.style.backgroundColor = "rgba(0, 0, 0, 0.356)";
-        cell.textContent = "+";
+        cell.classList.add("cellMiss");
+        cell.style.backgroundColor = "hsla(55, 73.20%, 30.80%, 0.54)";
         if (item == array[array.length - 1]) {
-          cell.style.color = "red";
+          cell.style.border = "3px solid crimson";
         }
       });
     },
@@ -1242,9 +1244,10 @@ const RenderGame = (game) => {
         this.dragElement();
       }
       this.giveShipToPlace();
-
       this.gridGameListeners();
       this.restartGameListener();
+      this.prepareBackGround();
+      this.BGShots();
     },
     isTouchDevice() {
       if ("ontouchstart" in window || navigator.maxTouchPoints) {
@@ -1257,6 +1260,287 @@ const RenderGame = (game) => {
       const textOutput = document.querySelector(".textOutput");
 
       textOutput.textContent = "Too close to the edge or other ships";
+    },
+    prepareBackGround() {
+      const ships = document.querySelectorAll(
+        ".battleship, .cruiser, .destroyer"
+      );
+      const creationScreen = document.querySelector(".fleetCreationScreen");
+      const batteries = document.querySelectorAll(".BGBattery");
+      const bridges = document.querySelectorAll(".BGBridge");
+      const guns = document.querySelectorAll(".BGGun");
+      const missiles = document.querySelectorAll(".BGMissile");
+      const missileRacks = document.querySelectorAll(".BGMissileRack");
+      const burnings = document.querySelectorAll(".burning");
+      const holes = document.querySelectorAll(".hole");
+
+      const startEventHandler = () => {
+        ships.forEach((ship) => ship.classList.add("moveIn"));
+        setTimeout(() => {
+          ships.forEach((ship) => {
+            ship
+              .querySelectorAll(".BGGun")
+              .forEach((gun) => gun.classList.add("rotateGuns"));
+            ship
+              .querySelectorAll(".BGMissile")
+              .forEach((missile) => missile.classList.add("armMissiles"));
+          });
+        }, 2000);
+      };
+
+      const resetEventHandler = () => {
+        ships.forEach((ship) => {
+          ship.classList.remove("BGSink");
+          ship.classList.remove("moveIn");
+        });
+        batteries.forEach((battery) => battery.classList.remove("destroyed"));
+        bridges.forEach((bridge) => bridge.classList.remove("destroyed"));
+        missileRacks.forEach((missileRack) =>
+          missileRack.classList.remove("destroyed")
+        );
+        guns.forEach((gun) => gun.classList.remove("rotateGuns"));
+        missiles.forEach((missile) => missile.classList.remove("armMissiles"));
+        burnings.forEach((burning) => burning.remove());
+        holes.forEach((hole) => hole.remove());
+      };
+
+      const config = { attributes: true, attributeFilter: ["class"] };
+
+      const observer = new MutationObserver((mutationList, observer) => {
+        mutationList.forEach((mutation) => {
+          if (
+            mutation.type === "attributes" &&
+            mutation.attributeName === "class"
+          ) {
+            if (creationScreen.classList.contains("slideUp")) {
+              startEventHandler();
+            } else {
+              resetEventHandler();
+            }
+          }
+        });
+      });
+
+      observer.observe(creationScreen, config);
+    },
+
+    splashingMisses(fleet) {
+      const playerActiveGuns = document.querySelectorAll(
+        ".playerFleet .battleship:not(.BGSink) .BGGun,.playerFleet .cruiser:not(.BGSink) .BGGun"
+      );
+      const playerActiveMissiles = document.querySelectorAll(
+        ".playerFleet .destroyer:not(.BGSink) .BGMissile"
+      );
+      const computerActiveGuns = document.querySelectorAll(
+        ".computerFleet .battleship:not(.BGSink) .BGGun,.computerFleet .cruiser:not(.BGSink) .BGGun"
+      );
+      const computerActiveMissiles = document.querySelectorAll(
+        ".computerFleet .destroyer:not(.BGSink) .BGMissile"
+      );
+      const activeGuns = fleet.classList.contains("playerFleet")
+        ? playerActiveGuns
+        : computerActiveGuns;
+      const activeMissiles = fleet.classList.contains("playerFleet")
+        ? playerActiveMissiles
+        : computerActiveMissiles;
+
+      for (let i = 1; i <= activeGuns.length + activeMissiles.length; i++) {
+        const randomTop = Math.floor(Math.random() * (30 + 65)) - 65;
+        const randomLeft = Math.floor(Math.random() * 99);
+        const splash = document.createElement("span");
+        splash.classList.add("splash");
+        const inner = document.createElement("splashInner");
+        inner.classList.add("splashInner");
+        splash.appendChild(inner);
+        splash.style.top = randomTop + "%";
+        splash.style.left = randomLeft + "%";
+        fleet.appendChild(splash);
+      }
+      setTimeout(() => {
+        const splashes = fleet.querySelectorAll(".splash");
+        splashes.forEach((splash) => splash.remove());
+      }, 1000);
+    },
+    fireGunsLaunchMissiles(fleet) {
+      const computerActiveShipsWGuns = document.querySelectorAll(
+        ".computerFleet .battleship:not(.BGSink), .computerFleet .cruiser:not(.BGSink)"
+      );
+      const playerActiveShipsWGuns = document.querySelectorAll(
+        ".playerFleet .battleship:not(.BGSink), .playerFleet .cruiser:not(.BGSink)"
+      );
+      const playerActiveShipsWMissiles = document.querySelectorAll(
+        ".playerFleet .destroyer:not(.BGSink)"
+      );
+      const computerActiveShipsWMissiles = document.querySelectorAll(
+        ".computerFleet .destroyer:not(.BGSink)"
+      );
+      const activeGunShips = fleet.classList.contains("playerFleet")
+        ? playerActiveShipsWGuns
+        : computerActiveShipsWGuns;
+      const activeMissileShips = fleet.classList.contains("playerFleet")
+        ? playerActiveShipsWMissiles
+        : computerActiveShipsWMissiles;
+
+      activeMissileShips.forEach((ship) => {
+        const missiles = ship.querySelectorAll(".BGMissile");
+        missiles.forEach((missile) => missile.classList.add("animateMissile"));
+
+        setTimeout(() => {
+          missiles.forEach((missile) =>
+            missile.classList.remove("animateMissile")
+          );
+        }, 2000);
+      });
+      activeGunShips.forEach((ship) => {
+        const batteries = ship.querySelectorAll(".BGBattery");
+        batteries.forEach((battery) => {
+          const gunFireCones = battery.querySelectorAll(".gunFireCone");
+          gunFireCones.forEach((cone) => {
+            cone.classList.add("animateFireCone");
+            setTimeout(() => {
+              cone.classList.remove("animateFireCone");
+            }, 2000);
+          });
+          const gunFireSmokes = battery.querySelectorAll(".gunFireSmoke");
+          gunFireSmokes.forEach((smoke) => {
+            smoke.classList.add("animateFireSmoke");
+            setTimeout(() => {
+              smoke.classList.remove("animateFireSmoke");
+            }, 2000);
+          });
+          const guns = battery.querySelectorAll(".BGGun");
+          guns.forEach((gun) => {
+            gun.classList.add("animateGun");
+            setTimeout(() => {
+              gun.classList.remove("animateGun");
+            }, 2000);
+          });
+        });
+      });
+    },
+    BGShots() {
+      const computerGrid = document.querySelector(".computerGrid");
+      const playerGrid = document.querySelector(".playerGrid");
+      const computerFleet = document.querySelector(".computerFleet");
+      const playerFleet = document.querySelector(".playerFleet");
+
+      const config = {
+        attributes: true,
+        attributeFilter: ["class"],
+        subtree: true,
+      };
+      const computerHits = game.human.board.hits;
+      const computerAttacks = game.human.board.attacks;
+      const playerHits = game.computer.board.hits;
+      const playerAttacks = game.computer.board.attacks;
+
+      const hitHandler = (fleet, coords) => {
+        const coinFlip = Math.random() > 0.5 ? 1 : 0;
+        const board =
+          fleet == computerFleet ? game.computer.board : game.human.board;
+        const theRightShip = board.occupied.filter(
+          (obj) => obj.x.includes(coords[0]) && obj.y.includes(coords[1])
+        );
+        const shipId = theRightShip[0].id;
+        const ship = fleet.querySelector(`[data-id="${shipId}"]`);
+        const randomTop = Math.floor(Math.random() * (55 - 10)) + 10;
+        const softerRandomTop = Math.floor(Math.random() * (15 - 10)) + 10;
+        const randomLeft = Math.floor(Math.random() * (70 - 15)) + 15;
+        const hitExplosion = document.createElement("span");
+        hitExplosion.classList.add("hitExplosion");
+        const explSmoke = document.createElement("span");
+        explSmoke.classList.add("explSmoke");
+        hitExplosion.appendChild(explSmoke);
+        const explosion = document.createElement("span");
+        explosion.classList.add("explosion");
+        hitExplosion.appendChild(explosion);
+        const inner = document.createElement("span");
+        inner.classList.add("explInner");
+        explosion.appendChild(inner);
+
+        hitExplosion.style.top = randomTop + "%";
+        hitExplosion.style.left = randomLeft + "%";
+        ship.appendChild(hitExplosion);
+        setTimeout(() => {
+          hitExplosion.remove();
+        }, 3300);
+
+        const burning = document.createElement("span");
+        burning.classList.add("burning");
+        const innerBurn = document.createElement("span");
+        innerBurn.classList.add("brnInner");
+        burning.style.left = randomLeft + "%";
+        burning.appendChild(innerBurn);
+
+        const hole = document.createElement("span");
+        hole.classList.add("hole");
+        hole.style.top = softerRandomTop + "%";
+        hole.style.left = randomLeft + "%";
+
+        const effect = coinFlip ? burning : hole;
+        ship.querySelector(".body").appendChild(effect);
+      };
+
+      const compObserver = new MutationObserver((mutationList, observer) => {
+        const mutation = mutationList.pop();
+        if (
+          mutation.type === "attributes" &&
+          mutation.attributeName === "class" &&
+          computerGrid.parentElement.classList.contains("highlight")
+        ) {
+          this.fireGunsLaunchMissiles(playerFleet);
+
+          setTimeout(() => {
+            this.splashingMisses(computerFleet);
+          }, 700);
+          if (
+            playerHits.length !== 0 &&
+            playerHits[playerHits.length - 1][0] ===
+              playerAttacks[playerAttacks.length - 1][0] &&
+            playerHits[playerHits.length - 1][1] ===
+              playerAttacks[playerAttacks.length - 1][1]
+          ) {
+            setTimeout(() => {
+              hitHandler(
+                computerFleet,
+                playerAttacks[playerAttacks.length - 1]
+              );
+            }, 700);
+          }
+        }
+      });
+
+      const PlayerObserver = new MutationObserver((mutationList, observer) => {
+        const mutation = mutationList.pop();
+
+        if (
+          mutation.type === "attributes" &&
+          mutation.attributeName === "class" &&
+          playerGrid.parentElement.classList.contains("highlight")
+        ) {
+          this.fireGunsLaunchMissiles(computerFleet);
+          setTimeout(() => {
+            this.splashingMisses(playerFleet);
+          }, 700);
+          if (
+            computerHits.length !== 0 &&
+            computerHits[computerHits.length - 1][0] ===
+              computerAttacks[computerAttacks.length - 1][0] &&
+            computerHits[computerHits.length - 1][1] ===
+              computerAttacks[computerAttacks.length - 1][1]
+          ) {
+            setTimeout(() => {
+              hitHandler(
+                playerFleet,
+                computerAttacks[computerAttacks.length - 1]
+              );
+            }, 700);
+          }
+        }
+      });
+
+      PlayerObserver.observe(playerGrid, config);
+      compObserver.observe(computerGrid, config);
     },
   };
 };
@@ -1335,41 +1619,6 @@ __webpack_require__.r(__webpack_exports__);
 const game = (0,_game_js__WEBPACK_IMPORTED_MODULE_0__.Game)();
 const renderGame = (0,_render_js__WEBPACK_IMPORTED_MODULE_1__.RenderGame)(game);
 renderGame.initGame();
-
-const battleship = document.querySelectorAll(".battleship");
-const cruiser = document.querySelectorAll(".cruiser");
-const destroyer = document.querySelectorAll(".destroyer");
-const guns = document.querySelectorAll(".BGGun");
-const missiles = document.querySelectorAll(".BGMissile");
-const batteryGuns = document.querySelectorAll(".BGBattery > .BGGun");
-const batteryFireCone = document.querySelectorAll(
-  ".BGBattery > .gunFire > .gunFireCone"
-);
-const batteryFireSmoke = document.querySelectorAll(
-  ".BGBattery > .gunFire > .gunFireSmoke"
-);
-
-document.addEventListener("click", (ev) => {
-  battleship.forEach((ship) => ship.classList.add("moveIn"));
-  cruiser.forEach((ship) => ship.classList.add("moveIn"));
-  destroyer.forEach((ship) => ship.classList.add("moveIn"));
-  setTimeout(() => {
-    guns.forEach((gun) => gun.classList.add("rotateGuns"));
-    missiles.forEach((missile) => missile.classList.add("armMissiles"));
-  }, 2000);
-  batteryGuns.forEach((gun) => gun.classList.add("animateGun"));
-  batteryFireCone.forEach((cone) => cone.classList.add("animateFireCone"));
-  batteryFireSmoke.forEach((Cloud) => Cloud.classList.add("animateFireSmoke"));
-  missiles.forEach((missile) => missile.classList.add("animateMissile"));
-  setTimeout(() => {
-    batteryGuns.forEach((gun) => gun.classList.remove("animateGun"));
-    batteryFireCone.forEach((cone) => cone.classList.remove("animateFireCone"));
-    batteryFireSmoke.forEach((Cloud) =>
-      Cloud.classList.remove("animateFireSmoke")
-    );
-    missiles.forEach((missile) => missile.classList.remove("animateMissile"));
-  }, 2000);
-});
 
 })();
 
